@@ -1,177 +1,177 @@
-# Skills 编写最佳实践
+# Best Practices for Writing Skills
 
-本指南深入介绍如何编写高质量的 Agent Skills，帮助您创建有效、易维护、可复用的知识模块。
+This guide provides an in-depth introduction to writing high-quality Agent Skills, helping you create effective, easy-to-maintain, and reusable knowledge modules.
 
-## 目录
+## Table of Contents
 
-- [核心原则](#核心原则)
-- [Skill 结构设计](#skill-结构设计)
-- [元数据编写](#元数据编写)
-- [内容组织](#内容组织)
-- [示例和模板](#示例和模板)
-- [测试和验证](#测试和验证)
-- [版本管理](#版本管理)
-- [性能优化](#性能优化)
-- [常见陷阱](#常见陷阱)
+- [Core Principles](#core-principles)
+- [Skill Structure Design](#skill-structure-design)
+- [Metadata Writing](#metadata-writing)
+- [Content Organization](#content-organization)
+- [Examples and Templates](#examples-and-templates)
+- [Testing and Validation](#testing-and-validation)
+- [Version Management](#version-management)
+- [Performance Optimization](#performance-optimization)
+- [Common Pitfalls](#common-pitfalls)
 
-## 核心原则
+## Core Principles
 
-### 1. 单一职责
+### 1. Single Responsibility
 
-每个 Skill 应该专注于一个明确的知识领域。
+Each Skill should focus on a clear knowledge area.
 
-**好的示例**：
+**Good Examples**:
 
-- `romance-dialogue` - 专注于言情小说对话技巧
-- `scene-pacing` - 专注于场景节奏控制
-- `character-consistency` - 专注于角色一致性检查
+- `romance-dialogue` - Focuses on romance novel dialogue techniques
+- `scene-pacing` - Focuses on scene rhythm control
+- `character-consistency` - Focuses on character consistency checks
 
-**避免的示例**：
+**Examples to Avoid**:
 
-- `novel-writing-everything` - 试图涵盖所有写作知识
-- `tips-and-tricks` - 主题不明确
+- `novel-writing-everything` - Tries to cover all writing knowledge
+- `tips-and-tricks` - Unclear theme
 
-### 2. 可发现性
+### 2. Discoverability
 
-AI 需要能够轻松找到和选择正确的 Skill。
+The AI needs to be able to easily find and select the correct Skill.
 
-**关键要素**：
+**Key Elements**:
 
-- 清晰的名称（描述性强，一目了然）
-- 详细的 description（说明用途）
-- 准确的 keywords（覆盖相关术语）
-- 明确的 whenToUse（说明使用场景）
+- Clear name (descriptive, easy to understand at a glance)
+- Detailed description (explains the purpose)
+- Accurate keywords (covers relevant terms)
+- Clear whenToUse (explains usage scenarios)
 
-### 3. 可操作性
+### 3. Actionability
 
-Skill 内容应该提供具体、可执行的指导，而不是抽象理论。
+Skill content should provide specific, executable guidance, not abstract theories.
 
-**可操作的内容**：
-
-```markdown
-## 对话标签使用
-
-### 什么时候省略标签
-
-- 只有两个人对话时
-- 说话者通过上下文明确时
-- 快速的对话交锋
-
-### 什么时候必须使用标签
-
-- 三人或以上对话
-- 说话者身份可能混淆时
-- 需要强调说话者的情绪或动作时
-```
-
-**避免过于抽象**：
+**Actionable Content**:
 
 ```markdown
-## 对话技巧
+## Dialogue Tag Usage
 
-对话是小说的重要组成部分，好的对话能够推动情节发展。
+### When to Omit Tags
+
+- When only two people are talking
+- When the speaker is clear from the context
+- In a rapid dialogue exchange
+
+### When Tags Must Be Used
+
+- In a conversation with three or more people
+- When the speaker's identity might be confusing
+- When the speaker's emotion or action needs to be emphasized
 ```
 
-### 4. 适度的范围
+**Avoid Being Too Abstract**:
 
-Skill 内容应该详细但不冗长。
+```markdown
+## Dialogue Techniques
 
-**合适的长度**：
+Dialogue is an important part of a novel, and good dialogue can advance the plot.
+```
 
-- 元数据：简洁明了
-- 主要内容：500-2000 行 Markdown
-- 复杂 Skill：可以拆分为多个相关 Skills
+### 4. Moderate Scope
 
-**信号表明应该拆分**：
+Skill content should be detailed but not lengthy.
 
-- 内容超过 3000 行
-- 包含多个不相关的主题
-- 目录层级超过 4 层
-- AI 激活后难以快速定位关键信息
+**Appropriate Length**:
 
-## Skill 结构设计
+- Metadata: Concise and clear
+- Main content: 500-2000 lines of Markdown
+- Complex Skills: Can be split into multiple related Skills
 
-### 标准目录结构
+**Signs That Splitting Is Needed**:
+
+- Content exceeds 3000 lines
+- Contains multiple unrelated topics
+- Directory hierarchy exceeds 4 levels
+- The AI has difficulty locating key information quickly after activation
+
+## Skill Structure Design
+
+### Standard Directory Structure
 
 ```
 .agent/skills/romance-writing/
-├── SKILL.md              # 主 Skill 文件（必需）
-├── examples/             # 示例文件（推荐）
-│   ├── dialogue.md
-│   └── scene.md
-├── templates/            # 模板文件（可选）
-│   └── chapter-outline.md
-└── assets/               # 其他资源（可选）
+├── SKILL.md # Main Skill file (required)
+├── examples/ # Example files (recommended)
+│ ├── dialogue.md
+│ └── scene.md
+├── templates/ # Template files (optional)
+│ └── chapter-outline.md
+└── assets/ # Other resources (optional)
     └── character-worksheet.pdf
 ```
 
-### SKILL.md 基本结构
+### Basic Structure of SKILL.md
 
 ```markdown
 ---
-# === YAML Frontmatter (元数据) ===
+# === YAML Frontmatter (Metadata) ===
 name: skill-name
-description: 简短描述（1-2 句话）
+description: Short description (1-2 sentences)
 version: 1.0.0
 keywords:
-    - keyword1
-    - keyword2
-whenToUse: 详细的使用场景说明
+ - keyword1
+ - keyword2
+whenToUse: Detailed description of usage scenarios
 requiredModes:
-    - mode1
-    - mode2
+ - mode1
+ - mode2
 ---
 
-# Skill 标题
+# Skill Title
 
-## 概述
+## Overview
 
-简要介绍这个 Skill 的目的和价值。
+Briefly introduce the purpose and value of this Skill.
 
-## 核心概念
+## Core Concepts
 
-### 概念 1
+### Concept 1
 
-详细说明
+Detailed explanation
 
-### 概念 2
+### Concept 2
 
-详细说明
+Detailed explanation
 
-## 实践指南
+## Practical Guide
 
-### 步骤 1
+### Step 1
 
-具体操作
+Specific operation
 
-### 步骤 2
+### Step 2
 
-具体操作
+Specific operation
 
-## 示例
+## Examples
 
-实际应用示例
+Practical application examples
 
-## 常见问题
+## Frequently Asked Questions
 
-Q&A 格式的常见问题
+FAQ in Q&A format
 
-## 参考资料
+## References
 
-相关链接和扩展阅读
+Related links and further reading
 ```
 
-## 元数据编写
+## Metadata Writing
 
 ### name
 
-**规范**：
+**Specification**:
 
-- 使用 kebab-case（小写字母，连字符分隔）
-- 3-5 个单词为佳
-- 描述性强，避免缩写
+- Use kebab-case (lowercase letters, hyphen-separated)
+- 3-5 words are ideal
+- Be descriptive, avoid abbreviations
 
-**好的示例**：
+**Good Examples**:
 
 ```yaml
 name: romance-dialogue-techniques
@@ -179,1390 +179,1389 @@ name: character-arc-design
 name: plot-twist-strategies
 ```
 
-**避免**：
+**Avoid**:
 
 ```yaml
-name: RomanceDialogue  # 使用了大写
-name: rd              # 过于简短
-name: very-long-name-that-describes-everything  # 过长
+name: RomanceDialogue # Used uppercase
+name: rd # Too short
+name: very-long-name-that-describes-everything # Too long
 ```
 
 ### description
 
-**规范**：
+**Specification**:
 
-- 1-2 句话
-- 说明 Skill 的核心价值
-- 包含关键术语
+- 1-2 sentences
+- Explain the core value of the Skill
+- Include key terms
 
-**模板**：
+**Template**:
 
 ```
-[动词] + [对象] + [目的/方法]
+[Verb] + [Object] + [Purpose/Method]
 ```
 
-**示例**：
+**Example**:
 
 ```yaml
-# 好
-description: 提供言情小说对话创作的技巧和规范，包括情感表达、潜台词运用和节奏控制
+# Good
+description: Provides techniques and specifications for creating romance novel dialogue, including emotional expression, subtext, and pacing.
 
-# 避免过于简短
-description: 对话技巧
+# Avoid being too short
+description: Dialogue techniques
 
-# 避免过于冗长
-description: 这个 Skill 提供了全面的言情小说对话创作指南，涵盖了从基础的对话标签使用到高级的潜台词技巧，还包括情感表达、节奏控制、人物语言风格塑造等多个方面的详细说明和大量实例
+# Avoid being too long
+description: This Skill provides a comprehensive guide to creating romance novel dialogue, covering everything from basic dialogue tag usage to advanced subtext techniques, as well as detailed explanations and numerous examples of emotional expression, pacing, and character voice shaping.
 ```
 
 ### version
 
-遵循语义化版本规范（Semantic Versioning）：
+Follow Semantic Versioning:
 
 ```yaml
 version: MAJOR.MINOR.PATCH
 ```
 
-**版本更新规则**：
+**Version Update Rules**:
 
-- `MAJOR`: 重大变更，不兼容的修改
-- `MINOR`: 新增功能，向后兼容
-- `PATCH`: 错误修复，小改进
+- `MAJOR`: Major changes, incompatible modifications
+- `MINOR`: New features, backward compatible
+- `PATCH`: Bug fixes, minor improvements
 
-**示例变更日志**：
+**Example Changelog**:
 
 ```markdown
 ## v2.0.0 (2025-11-15)
 
-- 重构：完全重写对话技巧章节
-- 破坏性变更：移除旧的分类体系
+- Refactor: Completely rewrote the dialogue techniques chapter
+- Breaking Change: Removed the old classification system
 
 ## v1.2.0 (2025-10-20)
 
-- 新增：潜台词技巧章节
-- 新增：10 个新示例
+- New: Subtext techniques chapter
+- New: 10 new examples
 
 ## v1.1.1 (2025-10-10)
 
-- 修复：修正示例中的错误
-- 改进：澄清模糊的说明
+- Fix: Corrected errors in the examples
+- Improvement: Clarified ambiguous instructions
 ```
 
 ### keywords
 
-**规范**：
+**Specification**:
 
-- 5-15 个关键词
-- 包含同义词和相关术语
-- 涵盖不同抽象层次
+- 5-15 keywords
+- Include synonyms and related terms
+- Cover different levels of abstraction
 
-**策略**：
+**Strategy**:
 
 ```yaml
 keywords:
-    # 核心术语
-    - romance
-    - dialogue
+ # Core terms
+ - romance
+ - dialogue
 
-    # 同义词
-    - conversation
-    - speech
+ # Synonyms
+ - conversation
+ - speech
 
-    # 相关概念
-    - emotion
-    - subtext
-    - character voice
+ # Related concepts
+ - emotion
+ - subtext
+ - character voice
 
-    # 使用场景
-    - love scene
-    - conflict dialogue
+ # Usage scenarios
+ - love scene
+ - conflict dialogue
 
-    # 技术术语
-    - dialogue tag
-    - beat
+ # Technical terms
+ - dialogue tag
+ - beat
 ```
 
-**避免**：
+**Avoid**:
 
 ```yaml
 keywords:
-    - the # 无意义词
-    - writing # 过于宽泛
-    - good # 主观形容词
+ - the # Meaningless word
+ - writing # Too broad
+ - good # Subjective adjective
 ```
 
 ### whenToUse
 
-**规范**：
+**Specification**:
 
-- 明确说明使用时机
-- 使用"当...时使用"格式
-- 提供具体场景
+- Clearly state when to use it
+- Use the "Use when..." format
+- Provide specific scenarios
 
-**模板**：
+**Template**:
 
 ```yaml
 whenToUse: |
-    当[场景1]时使用；
-    当[场景2]时使用；
-    适用于[用例1]、[用例2]和[用例3]
+ Use when [Scenario 1];
+ Use when [Scenario 2];
+ Suitable for [Use Case 1], [Use Case 2], and [Use Case 3]
 ```
 
-**示例**：
+**Example**:
 
 ```yaml
-# 好
+# Good
 whenToUse: |
-  当创作言情小说对话场景时使用；
-  当需要改进对话的情感表达时使用；
-  当审查对话的真实性和节奏时使用；
-  适用于初稿创作、修改润色和一致性检查
+  Use when creating dialogue scenes for romance novels;
+  Use when you need to improve the emotional expression in dialogue;
+  Use when reviewing the authenticity and pacing of dialogue;
+  Suitable for first draft creation, revision, and consistency checks
 
-# 避免过于模糊
-whenToUse: 写对话的时候用
+# Avoid being too vague
+whenToUse: Use when writing dialogue
 
-# 避免过于具体限制
-whenToUse: 仅在写都市言情小说第三章男女主角初次见面的咖啡厅对话时使用
+# Avoid being too specific and restrictive
+whenToUse: Only use when writing the cafe dialogue where the male and female leads first meet in the third chapter of a contemporary romance novel
 ```
 
 ### requiredModes
 
-**规范**：
+**Specification**:
 
-- 只在确实需要 Mode 限制时使用
-- 不设置则在所有 Mode 下可用
-- 考虑 Skill 的适用范围
+- Only use when Mode restrictions are necessary
+- If not set, it is available in all Modes
+- Consider the scope of the Skill
 
-**示例**：
+**Example**:
 
 ```yaml
-# 言情写作专用
+# For romance writing only
 requiredModes:
-  - novelist
+ - novelist
 
-# 编辑和审校工具
+# Editing and proofreading tools
 requiredModes:
-  - editor
-  - proofreader
+ - editor
+ - proofreader
 
-# 通用 Skill - 不设置 requiredModes
-# (省略此字段)
+# General Skill - do not set requiredModes
+# (Omit this field)
 ```
 
-### mcpResources (实验性)
+### mcpResources (Experimental)
 
-**用途**：
+**Purpose**:
 
-- 声明 Skill 需要的外部资源
-- 当 Skill 激活时自动加载
+- Declare external resources needed by the Skill
+- Automatically load when the Skill is activated
 
-**示例**：
+**Example**:
 
 ```yaml
 mcpResources:
-    - database://tropes/romance
-    - reference://character-archetypes
-    - examples://dialogue-samples
+ - database://tropes/romance
+ - reference://character-archetypes
+ - examples://dialogue-samples
 ```
 
-### allowedToolGroups (高级)
+### allowedToolGroups (Advanced)
 
-**用途**：
+**Purpose**:
 
-- 限制 Skill 激活时 AI 可以使用的工具
-- 用于安全或专注控制
+- Restrict the tools the AI can use when the Skill is activated
+- For security or focus control
 
-**示例**：
+**Example**:
 
 ```yaml
-# 只读分析 Skill
+# Read-only analysis Skill
 allowedToolGroups:
-  - read
-  - search
+ - read
+ - search
 
-# 完整创作 Skill
+# Full creation Skill
 allowedToolGroups:
-  - read
-  - write
-  - edit
-  - search
+ - read
+ - write
+ - edit
+ - search
 ```
 
-## 内容组织
+## Content Organization
 
-### 层次结构
+### Hierarchy
 
-**推荐的标题层级**：
+**Recommended Heading Levels**:
 
 ```markdown
-# Skill 主标题（H1 - 仅一个）
+# Skill Main Title (H1 - only one)
 
-## 主要章节（H2 - 3-7 个）
+## Main Chapters (H2 - 3-7)
 
-### 子章节（H3 - 按需使用）
+### Subchapters (H3 - use as needed)
 
-#### 细节点（H4 - 谨慎使用）
+#### Detailed Points (H4 - use with caution)
 ```
 
-**避免**：
+**Avoid**:
 
-- 超过 4 层标题嵌套
-- H1 级别标题多于一个
-- 跳过层级（H2 → H4）
+- More than 4 levels of nested headings
+- More than one H1 level heading
+- Skipping levels (H2 → H4)
 
-### 内容模式
+### Content Patterns
 
-#### 1. 概念 + 解释 + 示例
+#### 1. Concept + Explanation + Example
 
 ```markdown
-## 潜台词技巧
+## Subtext Techniques
 
-### 什么是潜台词
+### What is Subtext
 
-潜台词是对话表面之下的真实含义...
+Subtext is the true meaning beneath the surface of the dialogue...
 
-### 为什么重要
+### Why It's Important
 
-潜台词能够：
+Subtext can:
 
-- 增加对话深度
-- 制造戏剧张力
-- 展示角色性格
+- Add depth to dialogue
+- Create dramatic tension
+- Reveal character personality
 
-### 如何使用
+### How to Use
 
-#### 技巧 1：对比表层和内心
+#### Technique 1: Contrast Surface and Inner Thoughts
 
-**表层**："我很好。"
-**内心**：我糟透了，但不想让你担心。
+**Surface**: "I'm fine."
+**Inner thought**: I'm miserable, but I don't want you to worry.
 
-**示例**：
-「"我很好。"她转过身，避开他关切的目光。」
+**Example**:
+「"I'm fine." She turned away, avoiding his concerned gaze.」
 ```
 
-#### 2. 检查清单模式
+#### 2. Checklist Pattern
 
 ```markdown
-## 对话审查清单
+## Dialogue Review Checklist
 
-### 真实性检查
+### Authenticity Check
 
-- [ ] 每个角色的说话方式是否符合其性格？
-- [ ] 是否避免了过于书面化的语言？
-- [ ] 方言和口头禅是否使用一致？
+- [ ] Does each character's way of speaking match their personality?
+- [ ] Have you avoided overly formal language?
+- [ ] Are dialects and catchphrases used consistently?
 
-### 节奏检查
+### Pacing Check
 
-- [ ] 对话是否有快慢变化？
-- [ ] 是否有适当的停顿和沉默？
-- [ ] 长句和短句是否交替使用？
+- [ ] Is there variation in the pace of the dialogue?
+- [ ] Are there appropriate pauses and silences?
+- [ ] Are long and short sentences used alternately?
 ```
 
-#### 3. 对比表格模式
+#### 3. Comparison Table Pattern
 
 ```markdown
-## 对话标签选择
+## Dialogue Tag Selection
 
-| 场景       | 推荐              | 避免              | 原因               |
-| ---------- | ----------------- | ----------------- | ------------------ |
-| 快节奏冲突 | "说" "道"         | "咆哮道" "怒吼道" | 让内容本身传达情绪 |
-| 情感高潮   | "低声说" "颤声道" | "说"              | 需要强调说话方式   |
-| 日常对话   | 省略标签          | 频繁使用          | 保持流畅性         |
+| Scenario | Recommended | Avoid | Reason |
+| --- | --- | --- | --- |
+| Fast-paced conflict | "said" "stated" | "roared" "yelled" | Let the content convey the emotion |
+| Emotional climax | "whispered" "trembled" | "said" | Need to emphasize the manner of speaking |
+| Daily conversation | Omit tags | Frequent use | Maintain fluency |
 ```
 
-#### 4. 分步指南模式
+#### 4. Step-by-Step Guide Pattern
 
 ```markdown
-## 创作冲突对话的步骤
+## Steps to Create Conflict Dialogue
 
-### 步骤 1：明确冲突核心
+### Step 1: Clarify the Core Conflict
 
-确定双方的真正分歧点...
+Identify the real point of disagreement...
 
-### 步骤 2：设计升级路径
+### Step 2: Design an Escalation Path
 
-冲突应该逐步升级：
+The conflict should escalate gradually:
 
-1. 礼貌的分歧
-2. 直接的对抗
-3. 情绪化的爆发
-4. 关键的突破
+1. Polite disagreement
+2. Direct confrontation
+3. Emotional outburst
+4. Key breakthrough
 
-### 步骤 3：安排节奏
+### Step 3: Arrange the Pacing
 
 ...
 ```
 
-### 代码和示例
+### Code and Examples
 
-#### Markdown 示例
+#### Markdown Examples
 
-使用代码块区分示例：
+Use code blocks to distinguish examples:
 
 ````markdown
-**好的示例**：
+**Good Example**:
 
 ```
-"我不是故意的。"她低下头，声音几不可闻。
+"I didn't mean to." She lowered her head, her voice barely audible.
 
-他沉默了很久，最终只是说："我知道。"
+He was silent for a long time, finally just saying, "I know."
 ```
 
-**需要改进**：
+**Needs Improvement**:
 
 ```
-"我不是故意的！"她大声说道，表情很内疚。
+"I didn't mean to!" she said loudly, looking very guilty.
 
-"我知道。"他平静地回答，但是心里其实很生气。
+"I know," he replied calmly, but he was actually very angry.
 ```
 ````
 
-#### 对比展示
+#### Comparison Display
 
 ```markdown
-## 信息量控制
+## Information Control
 
-### ❌ 信息过载
+### ❌ Information Overload
 
-"嗨，我是李明，今年28岁，在一家科技公司当程序员，平时喜欢看书和跑步，最近刚搬到这个城市..."
+"Hi, I'm Li Ming, 28 years old, a programmer at a tech company. I like to read and run in my spare time. I just moved to this city recently..."
 
-### ✅ 自然展开
+### ✅ Natural Unfolding
 
-"嗨，我是李明。"
+"Hi, I'm Li Ming."
 
-他的握手很有力，手上有茧，不像典型的程序员。
+His handshake was firm, and his hands were calloused, not like a typical programmer.
 
-"刚搬来的？"
+"Just moved here?"
 
-"上个月。还在适应这里的节奏。"
+"Last month. Still getting used to the pace here."
 ```
 
-### 支持文件引用
+### Support File References
 
 ```markdown
-## 示例参考
+## Example References
 
-详细的对话示例请参阅：
+For detailed dialogue examples, please refer to:
 
-- [爱情告白场景](./examples/confession-scene.md)
-- [冲突对话场景](./examples/conflict-scene.md)
+- [Love Confession Scene](./examples/confession-scene.md)
+- [Conflict Dialogue Scene](./examples/conflict-scene.md)
 
-角色对话工作表：
+Character dialogue worksheet:
 
-- [角色语言风格表](./assets/character-voice-worksheet.md)
+- [Character Voice Style Sheet](./assets/character-voice-worksheet.md)
 ```
 
-## 示例和模板
+## Examples and Templates
 
-### 完整 Skill 示例：言情对话技巧
+### Complete Skill Example: Romance Dialogue Techniques
 
 ```markdown
 ---
 name: romance-dialogue-techniques
-description: 言情小说对话创作的技巧和规范，包括情感表达、潜台词运用和节奏控制
+description: Techniques and specifications for creating romance novel dialogue, including emotional expression, subtext, and pacing.
 version: 1.0.0
 keywords:
-    - romance
-    - dialogue
-    - conversation
-    - emotion
-    - subtext
-    - character voice
+ - romance
+ - dialogue
+ - conversation
+ - emotion
+ - subtext
+ - character voice
 whenToUse: |
-    当创作言情小说对话场景时使用；
-    当需要改进对话的情感表达时使用；
-    当审查对话的真实性和节奏时使用
+ Use when creating dialogue scenes for romance novels;
+ Use when you need to improve the emotional expression in dialogue;
+ Use when reviewing the authenticity and pacing of dialogue
 requiredModes:
-    - novelist
+ - novelist
 ---
 
-# 言情对话技巧
+# Romance Dialogue Techniques
 
-## 概述
+## Overview
 
-对话是言情小说的核心，承载着情感交流、关系发展和性格展示的重要功能。
-本 Skill 提供系统的对话创作指导，帮助创作真实、动人、有节奏感的对话。
+Dialogue is the core of romance novels, carrying the important functions of emotional exchange, relationship development, and character presentation.
+This Skill provides systematic guidance for dialogue creation, helping to create authentic, moving, and rhythmic dialogue.
 
-## 核心原则
+## Core Principles
 
-### 1. 真实性优先
+### 1. Authenticity First
 
-对话应该符合角色性格和社会背景。
+Dialogue should be consistent with the character's personality and social background.
 
-**要点**：
+**Key Points**:
 
-- 考虑角色的教育程度、职业、年龄
-- 注意时代背景和地域特色
-- 避免所有角色说话方式一样
+- Consider the character's education, profession, and age
+- Pay attention to the historical background and regional characteristics
+- Avoid all characters speaking in the same way
 
-### 2. 少即是多
+### 2. Less is More
 
-精简的对话往往更有力量。
+Concise dialogue is often more powerful.
 
-**对比**：
+**Comparison**:
 
-❌ **冗长**：
-"我真的非常非常喜欢你，从第一次见面开始就这样，我一直在想你，每天都在想..."
+❌ **Lengthy**:
+"I really, really like you, from the first time we met, I've been thinking about you, every day..."
 
-✅ **精炼**：
-"我想你。"他顿了顿，"每天都想。"
+✅ **Concise**:
+"I miss you." He paused, "Every day."
 
-### 3. 潜台词的力量
+### 3. The Power of Subtext
 
-最好的对话在表面之下有更深的含义。
+The best dialogue has a deeper meaning beneath the surface.
 
-## 技巧详解
+## Detailed Techniques
 
-### 情感表达
+### Emotional Expression
 
-#### 直接 vs 间接
+#### Direct vs. Indirect
 
-**直接表达**：适用于情感爆发时刻
+**Direct Expression**: Suitable for moments of emotional outburst
 ```
 
-"我爱你。"
-
-```
-
-**间接表达**：适用于日常互动，更细腻
-```
-
-"我煮了你爱吃的粥。"
-"今天下雨，记得带伞。"
+"I love you."
 
 ```
 
-### 冲突对话
-
-#### 升级模式
-
-1. **礼貌分歧**
+**Indirect Expression**: Suitable for daily interactions, more subtle
 ```
 
-"我觉得这样不太好。"
-"可是我们说好的..."
+"I made your favorite porridge."
+"It's raining today, remember to bring an umbrella."
 
 ```
 
-2. **直接对抗**
+### Conflict Dialogue
+
+#### Escalation Pattern
+
+1. **Polite Disagreement**
 ```
 
-"你从来不听我说话！"
-"因为你说的根本不合理！"
-
-```
-
-3. **情绪爆发**
-```
-
-"够了！我受够了！"
+"I don't think that's a good idea."
+"But we agreed..."
 
 ```
 
-4. **冷静转折**
+2. **Direct Confrontation**
+```
+
+"You never listen to me!"
+"Because what you're saying makes no sense!"
+
+```
+
+3. **Emotional Outburst**
+```
+
+"Enough! I've had enough!"
+
+```
+
+4. **Calm Turning Point**
 ```
 
 "..."
-他深吸一口气："我们冷静点。"
+He took a deep breath: "Let's calm down."
 
 ```
 
-### 对话节奏
+### Dialogue Pacing
 
-#### 快慢结合
+#### Combining Fast and Slow
 
-**快节奏**（冲突、紧张）：
+**Fast Pacing** (conflict, tension):
 ```
 
-"走！"
-"等等——"
-"来不及了！"
-
-```
-
-**慢节奏**（情感、亲密）：
-```
-
-他看着她，良久才开口："还记得我们第一次见面吗？"
-
-她点点头，没有说话。
-
-"那时候下着雨。"他轻声说，"你的裙子湿了一大片。"
+"Go!"
+"Wait--"
+"No time!"
 
 ```
 
-## 常见问题
+**Slow Pacing** (emotional, intimate):
+```
 
-### Q: 如何避免对话标签单调？
+He looked at her, and it was a long time before he spoke: "Do you remember the first time we met?"
+
+She nodded, without speaking.
+
+"It was raining then." he said softly, "Your dress was all wet."
+
+```
+
+## Frequently Asked Questions
+
+### Q: How to avoid monotonous dialogue tags?
 
 A:
-1. 适当省略标签（上下文明确时）
-2. 用动作代替标签
-3. 变化标签动词（但不要过度）
+1. Omit tags appropriately (when the context is clear)
+2. Use actions instead of tags
+3. Vary tag verbs (but don't overdo it)
 
-### Q: 对话中的方言如何处理？
+### Q: How to handle dialects in dialogue?
 
 A:
-1. 轻微暗示而非完全模仿
-2. 使用特定词汇而非拼写变化
-3. 保持可读性
+1. Hint at it rather than fully imitating
+2. Use specific vocabulary rather than spelling variations
+3. Maintain readability
 
-## 参考资源
+## Resources
 
-- [对话示例集](./examples/dialogue-samples.md)
-- [角色语言风格表](./templates/character-voice.md)
+- [Dialogue Example Set](./examples/dialogue-samples.md)
+- [Character Voice Style Sheet](./templates/character-voice.md)
 ```
 
-### Skill 模板
+### Skill Template
 
-快速开始的基础模板：
+A basic template to get you started quickly:
 
 ```markdown
 ---
 name: your-skill-name
-description: 简短描述（1-2句话）
+description: Short description (1-2 sentences)
 version: 1.0.0
 keywords:
-    - keyword1
-    - keyword2
-    - keyword3
-whenToUse: 何时使用这个 Skill
+ - keyword1
+ - keyword2
+ - keyword3
+whenToUse: When to use this Skill
 ---
 
-# Skill 名称
+# Skill Name
 
-## 概述
+## Overview
 
-简要说明这个 Skill 的目的。
+Briefly explain the purpose of this Skill.
 
-## 核心概念
+## Core Concepts
 
-### 概念 1
+### Concept 1
 
-说明
+Explanation
 
-### 概念 2
+### Concept 2
 
-说明
+Explanation
 
-## 实践指南
+## Practical Guide
 
-### 步骤 1
+### Step 1
 
-详细说明
+Detailed explanation
 
-### 步骤 2
+### Step 2
 
-详细说明
+Detailed explanation
 
-## 示例
+## Examples
 
-**示例 1**：
+**Example 1**:
 ...
 
-**示例 2**：
+**Example 2**:
 ...
 
-## 常见问题
+## Frequently Asked Questions
 
-### Q: 问题 1？
+### Q: Question 1?
 
-A: 回答
+A: Answer
 
-### Q: 问题 2？
+### Q: Question 2?
 
-A: 回答
+A: Answer
 
-## 参考资料
+## References
 
-- 链接 1
-- 链接 2
+- Link 1
+- Link 2
 ```
 
-## 测试和验证
+## Testing and Validation
 
-### 自我检查清单
+### Self-Checklist
 
-创建 Skill 后，进行以下检查：
+After creating a Skill, perform the following checks:
 
-#### 元数据检查
+#### Metadata Check
 
-- [ ] name 使用 kebab-case
-- [ ] description 清晰简洁（1-2 句话）
-- [ ] version 符合语义化版本规范
-- [ ] keywords 包含 5-15 个相关术语
-- [ ] whenToUse 明确说明使用场景
-- [ ] requiredModes 设置合理（如需要）
+- [ ] `name` uses kebab-case
+- [ ] `description` is clear and concise (1-2 sentences)
+- [ ] `version` follows semantic versioning
+- [ ] `keywords` contain 5-15 relevant terms
+- [ ] `whenToUse` clearly describes usage scenarios
+- [ ] `requiredModes` are set reasonably (if needed)
 
-#### 内容检查
+#### Content Check
 
-- [ ] 有明确的概述章节
-- [ ] 内容组织有逻辑层次
-- [ ] 包含具体、可操作的指导
-- [ ] 有实际示例说明要点
-- [ ] 标题层级不超过 4 层
-- [ ] Markdown 格式正确
-- [ ] 没有错别字和语法错误
+- [ ] There is a clear overview chapter
+- [ ] The content is organized logically
+- [ ] It contains specific, actionable guidance
+- [ ] There are practical examples to illustrate key points
+- [ ] The heading level does not exceed 4 levels
+- [ ] The Markdown format is correct
+- [ ] There are no typos or grammatical errors
 
-#### 质量检查
+#### Quality Check
 
-- [ ] 内容长度适中（500-2000 行）
-- [ ] 每个章节聚焦单一主题
-- [ ] 示例真实、相关
-- [ ] 避免过于抽象的理论
-- [ ] 语言清晰、易懂
+- [ ] The content length is moderate (500-2000 lines)
+- [ ] Each chapter focuses on a single topic
+- [ ] The examples are authentic and relevant
+- [ ] Avoid overly abstract theories
+- [ ] The language is clear and easy to understand
 
-#### 可用性检查
+#### Usability Check
 
-- [ ] AI 能否根据 description 和 keywords 找到这个 Skill？
-- [ ] whenToUse 是否准确描述了使用时机？
-- [ ] 内容是否真正回答了用户的需求？
-- [ ] 是否容易快速定位关键信息？
+- [ ] Can the AI find this Skill based on the `description` and `keywords`?
+- [ ] Does `whenToUse` accurately describe the usage scenarios?
+- [ ] Does the content truly meet the user's needs?
+- [ ] Is it easy to quickly locate key information?
 
-### 实际测试
+### Actual Testing
 
-#### 1. 手动测试
+#### 1. Manual Testing
 
-与 AI 对话，测试 Skill 是否被正确激活：
+Talk to the AI to test if the Skill is activated correctly:
 
-**测试场景**：
-
-```
-用户：帮我写一段言情小说的对话
-AI：[USING SKILL: romance-dialogue-techniques]
-    根据言情对话技巧...
-```
-
-**检查项**：
-
-- AI 是否正确识别使用场景
-- AI 是否应用了 Skill 中的指导
-- 生成的内容是否符合 Skill 规范
-
-#### 2. 关键词测试
-
-使用不同的关键词提问，验证 Skill 的可发现性：
+**Test Scenario**:
 
 ```
-测试 1："写对话" → 应该激活
-测试 2："角色对话" → 应该激活
-测试 3："情感表达" → 应该激活
-测试 4："场景描写" → 不应该激活（不相关）
+User: Help me write a dialogue for a romance novel
+AI: [USING SKILL: romance-dialogue-techniques]
+ According to the romance dialogue techniques...
 ```
 
-#### 3. 边界测试
+**Checklist**:
 
-测试 requiredModes 是否正确工作：
+- Does the AI correctly identify the usage scenario?
+- Does the AI apply the guidance from the Skill?
+- Does the generated content conform to the Skill's specifications?
+
+#### 2. Keyword Testing
+
+Ask questions using different keywords to verify the discoverability of the Skill:
 
 ```
-当前 Mode: novelist → 应该可用
-当前 Mode: coder → 应该不可用（如果设置了 requiredModes）
+Test 1: "write dialogue" → should activate
+Test 2: "character dialogue" → should activate
+Test 3: "emotional expression" → should activate
+Test 4: "scene description" → should not activate (irrelevant)
 ```
 
-### 同行审查
+#### 3. Boundary Testing
 
-如果在团队中使用：
+Test if `requiredModes` works correctly:
 
-1. **请同事审查**：
-    - 元数据是否清晰
-    - 内容是否准确、有用
-    - 示例是否恰当
+```
+Current Mode: novelist → should be available
+Current Mode: coder → should be unavailable (if requiredModes is set)
+```
 
-2. **收集反馈**：
-    - 是否满足了预期需求
-    - 有哪些需要改进的地方
-    - 是否有遗漏的内容
+### Peer Review
 
-3. **迭代改进**：
-    - 根据反馈更新内容
-    - 增加版本号
-    - 记录变更日志
+If used in a team:
 
-## 版本管理
+1. **Ask colleagues to review**:
+ - Is the metadata clear?
+ - Is the content accurate and useful?
+ - Are the examples appropriate?
 
-### 变更日志
+2. **Collect feedback**:
+ - Does it meet the expected needs?
+ - What needs to be improved?
+ - Is there any missing content?
 
-在 SKILL.md 底部添加变更日志：
+3. **Iterate and improve**:
+ - Update the content based on feedback
+ - Increment the version number
+ - Record the changelog
+
+## Version Management
+
+### Changelog
+
+Add a changelog at the bottom of SKILL.md:
 
 ```markdown
 ---
 
-## 变更日志
+## Changelog
 
 ### v1.2.0 (2025-11-15)
 
-- 新增：潜台词技巧章节
-- 新增：10 个新对话示例
-- 改进：重组"情感表达"章节
+- New: Subtext techniques chapter
+- New: 10 new dialogue examples
+- Improvement: Reorganized the "Emotional Expression" chapter
 
 ### v1.1.0 (2025-10-20)
 
-- 新增：对话节奏控制章节
-- 修复：修正示例中的标点错误
+- New: Dialogue pacing control chapter
+- Fix: Corrected punctuation errors in the examples
 
 ### v1.0.0 (2025-10-01)
 
-- 初始版本发布
+- Initial version release
 ```
 
-### Git 提交规范
+### Git Commit Convention
 
 ```bash
-# 新 Skill
+# New Skill
 git commit -m "feat(skills): add romance-dialogue-techniques skill"
 
-# 更新 Skill
+# Update Skill
 git commit -m "docs(skills): update romance-dialogue - add subtext section"
 
-# 修复错误
+# Fix bug
 git commit -m "fix(skills): correct examples in romance-dialogue skill"
 ```
 
-### 版本升级指南
+### Version Upgrade Guide
 
-**何时升级 MAJOR 版本 (x.0.0)**：
+**When to upgrade to a MAJOR version (x.0.0)**:
 
-- 重大重构，改变 Skill 的核心结构
-- 移除或大幅修改重要章节
-- 不兼容的变更
+- Major refactoring that changes the core structure of the Skill
+- Removing or significantly modifying important chapters
+- Incompatible changes
 
-**何时升级 MINOR 版本 (1.x.0)**：
+**When to upgrade to a MINOR version (1.x.0)**:
 
-- 添加新章节或内容
-- 增强现有功能
-- 向后兼容的改进
+- Adding new chapters or content
+- Enhancing existing features
+- Backward-compatible improvements
 
-**何时升级 PATCH 版本 (1.0.x)**：
+**When to upgrade to a PATCH version (1.0.x)**:
 
-- 修复错误
-- 更正错别字
-- 小的澄清和改进
+- Fixing bugs
+- Correcting typos
+- Minor clarifications and improvements
 
-## 性能优化
+## Performance Optimization
 
-### 控制文件大小
+### Control File Size
 
-**目标**：
+**Goal**:
 
-- 单个 SKILL.md：< 100KB
-- 包含支持文件的完整 Skill：< 500KB
+- Single SKILL.md: < 100KB
+- Complete Skill with support files: < 500KB
 
-**优化方法**：
+**Optimization Methods**:
 
-1. **拆分过大的 Skill**：
+1. **Split oversized Skills**:
 
-    ```
-    # 拆分前
-    novel-writing-complete/
-    └── SKILL.md (5000 行)
+ ```
+ # Before splitting
+ novel-writing-complete/
+ └── SKILL.md (5000 lines)
 
-    # 拆分后
-    novel-writing-dialogue/
-    ├── SKILL.md (800 行)
-    novel-writing-description/
-    ├── SKILL.md (900 行)
-    novel-writing-plot/
-    └── SKILL.md (1000 行)
-    ```
+ # After splitting
+ novel-writing-dialogue/
+ ├── SKILL.md (800 lines)
+ novel-writing-description/
+ ├── SKILL.md (900 lines)
+ novel-writing-plot/
+ └── SKILL.md (1000 lines)
+ ```
 
-2. **外部化大型示例**：
+2. **Externalize large examples**:
 
-    ```markdown
-    # 不好：内联大量示例
+ ```markdown
+ # Bad: Inline large examples
 
-    ## 示例
+ ## Examples
 
-    [5000 行的示例内容]
+ [5000 lines of example content]
 
-    # 好：引用外部文件
+ # Good: Reference external files
 
-    ## 示例
+ ## Examples
 
-    详细示例请参阅：
+ For detailed examples, please refer to:
 
-    - [对话示例 1](./examples/dialogue-01.md)
-    - [对话示例 2](./examples/dialogue-02.md)
-    ```
+ - [Dialogue Example 1](./examples/dialogue-01.md)
+ - [Dialogue Example 2](./examples/dialogue-02.md)
+ ```
 
-3. **避免重复内容**：
-   使用内部链接引用已说明的概念：
-    ```markdown
-    关于角色一致性，参见[角色设定章节](#角色设定)
-    ```
+3. **Avoid repetitive content**:
+ Use internal links to reference concepts that have already been explained:
+ ```markdown
+ For character consistency, see the [Character Settings chapter](#character-settings)
+ ```
 
-### 优化加载速度
+### Optimize Loading Speed
 
-**策略**：
+**Strategy**:
 
-1. **元数据优先**：确保 frontmatter 简洁明了
-2. **关键内容前置**：把最重要的信息放在前面
-3. **延迟加载**：大型资源使用外部文件
+1. **Metadata first**: Ensure the frontmatter is concise and clear
+2. **Prioritize key content**: Put the most important information at the beginning
+3. **Lazy loading**: Use external files for large resources
 
-## 常见陷阱
+## Common Pitfalls
 
-### 1. 过于宽泛
+### 1. Too Broad
 
-**问题**：
+**Problem**:
 
 ```yaml
 name: writing-tips
-description: 各种写作技巧
+description: Various writing tips
 keywords: [writing, tips, novel]
 ```
 
-**解决**：
+**Solution**:
 
 ```yaml
 name: romance-dialogue-techniques
-description: 言情小说对话创作的技巧和规范
+description: Techniques and specifications for creating romance novel dialogue
 keywords: [romance, dialogue, emotion, subtext]
 ```
 
-### 2. 缺乏具体性
+### 2. Lack of Specificity
 
-**问题**：
-
-```markdown
-## 对话技巧
-
-对话要写得好，要注意真实性和情感表达。
-```
-
-**解决**：
+**Problem**:
 
 ```markdown
-## 对话技巧
+## Dialogue Techniques
 
-### 真实性检查清单
-
-- [ ] 角色说话方式是否符合其教育背景？
-- [ ] 是否使用了符合时代的词汇？
-- [ ] 方言特征是否一致？
-
-### 情感表达方法
-
-1. **直接表达**：用于情感爆发
-   示例："我爱你。"
-
-2. **间接表达**：用于日常互动
-   示例："我煮了你爱吃的粥。"
+Dialogue should be well-written, paying attention to authenticity and emotional expression.
 ```
 
-### 3. 元数据不准确
+**Solution**:
 
-**问题**：
+```markdown
+## Dialogue Techniques
+
+### Authenticity Checklist
+
+- [ ] Does the character's way of speaking match their educational background?
+- [ ] Are period-appropriate words used?
+- [ ] Are dialect features consistent?
+
+### Methods of Emotional Expression
+
+1. **Direct Expression**: For emotional outbursts
+ Example: "I love you."
+
+2. **Indirect Expression**: For daily interactions
+ Example: "I made your favorite porridge."
+```
+
+### 3. Inaccurate Metadata
+
+**Problem**:
 
 ```yaml
-whenToUse: 写小说的时候用
+whenToUse: Use when writing a novel
 ```
 
-**解决**：
+**Solution**:
 
 ```yaml
 whenToUse: |
-    当创作言情小说对话场景时使用；
-    当需要改进对话的情感表达时使用；
-    当审查对话的真实性和节奏时使用
+ Use when creating dialogue scenes for romance novels;
+ Use when you need to improve the emotional expression in dialogue;
+ Use when reviewing the authenticity and pacing of dialogue
 ```
 
-### 4. 过度复杂
+### 4. Overly Complex
 
-**问题**：
+**Problem**:
 
-- 嵌套 5 层以上的标题
-- 使用复杂的术语而不解释
-- 试图覆盖过多主题
+- More than 5 levels of nested headings
+- Using complex terms without explanation
+- Trying to cover too many topics
 
-**解决**：
+**Solution**:
 
-- 限制标题层级为 3-4 层
-- 定义专业术语
-- 拆分为多个专注的 Skills
+- Limit heading levels to 3-4
+- Define professional terms
+- Split into multiple focused Skills
 
-### 5. 缺少示例
+### 5. Lack of Examples
 
-**问题**：
-纯理论说明，没有实际示例。
+**Problem**:
+Purely theoretical explanations without practical examples.
 
-**解决**：
-每个技巧都提供至少一个具体示例：
+**Solution**:
+Provide at least one specific example for each technique:
 
 ```markdown
-### 技巧：使用沉默
+### Technique: Using Silence
 
-**说明**：
-适当的沉默能够增强对话的张力和情感深度。
+**Explanation**:
+Appropriate silence can enhance the tension and emotional depth of dialogue.
 
-**示例**：
-"你还爱我吗？"
+**Example**:
+"Do you still love me?"
 
-他没有回答，只是看着窗外。
+He didn't answer, just looked out the window.
 
-良久，她轻声说："我知道了。"
+After a long time, she said softly, "I see."
 ```
 
-### 6. 忽略维护
+### 6. Neglecting Maintenance
 
-**问题**：
-创建后从不更新，内容逐渐过时。
+**Problem**:
+Never updated after creation, content becomes outdated.
 
-**解决**：
+**Solution**:
 
-- 定期审查（每季度或每半年）
-- 收集使用反馈
-- 更新版本号
-- 记录变更日志
+- Regular review (quarterly or semi-annually)
+- Collect usage feedback
+- Update version numbers
+- Record changelog
 
-## 快速参考
+## Quick Reference
 
-### Skill 创建工作流
+### Skill Creation Workflow
 
 ```
-1. 确定主题和范围
-   ↓
-2. 编写元数据
-   ↓
-3. 创建内容大纲
-   ↓
-4. 填充详细内容
-   ↓
-5. 添加示例
-   ↓
-6. 自我检查
-   ↓
-7. 实际测试
-   ↓
-8. 发布和监控
-   ↓
-9. 收集反馈
-   ↓
-10. 迭代改进
+1. Determine the theme and scope
+ ↓
+2. Write metadata
+ ↓
+3. Create a content outline
+ ↓
+4. Fill in the detailed content
+ ↓
+5. Add examples
+ ↓
+6. Self-check
+ ↓
+7. Actual testing
+ ↓
+8. Publish and monitor
+ ↓
+9. Collect feedback
+ ↓
+10. Iterate and improve
 ```
 
-### 元数据速查表
+### Metadata Cheat Sheet
 
-| 字段              | 必需 | 格式       | 说明          |
-| ----------------- | ---- | ---------- | ------------- |
-| name              | ✅   | kebab-case | 3-5 单词      |
-| description       | ✅   | 字符串     | 1-2 句话      |
-| version           | ✅   | x.y.z      | 语义化版本    |
-| keywords          | 推荐 | 数组       | 5-15 个词     |
-| whenToUse         | 推荐 | 字符串     | 详细场景      |
-| requiredModes     | 可选 | 数组       | Mode 名称列表 |
-| mcpResources      | 可选 | 数组       | 资源 URI      |
-| allowedToolGroups | 可选 | 数组       | 工具组名称    |
+| Field | Required | Format | Description |
+| --- | --- | --- | --- |
+| name | ✅ | kebab-case | 3-5 words |
+| description | ✅ | String | 1-2 sentences |
+| version | ✅ | x.y.z | Semantic version |
+| keywords | Recommended | Array | 5-15 words |
+| whenToUse | Recommended | String | Detailed scenarios |
+| requiredModes | Optional | Array | List of Mode names |
+| mcpResources | Optional | Array | Resource URI |
+| allowedToolGroups | Optional | Array | Tool group names |
 
-### 内容组织速查表
+### Content Organization Cheat Sheet
 
-| 元素    | 用途       | 示例             |
-| ------- | ---------- | ---------------- |
-| # H1    | Skill 标题 | `# 言情对话技巧` |
-| ## H2   | 主要章节   | `## 核心原则`    |
-| ### H3  | 子章节     | `### 真实性优先` |
-| #### H4 | 细节点     | `#### 技巧 1`    |
-| 列表    | 要点罗列   | `- 要点 1`       |
-| 代码块  | 示例展示   | ` ```示例``` `   |
-| 表格    | 对比说明   | `\| A \| B \|`   |
-| 引用    | 强调提示   | `> 重要提示`     |
+| Element | Purpose | Example |
+| --- | --- | --- |
+| # H1 | Skill Title | `# Romance Dialogue Techniques` |
+| ## H2 | Main Chapter | `## Core Principles` |
+| ### H3 | Subchapter | `### Authenticity First` |
+| #### H4 | Detailed Point | `#### Technique 1` |
+| List | List of points | `- Point 1` |
+| Code Block | Example display | ` ```Example``` ` |
+| Table | Comparison | `\| A \| B \|` |
+| Quote | Emphasis | `> Important Note` |
 
-## 社区资源
+## Community Resources
 
-### 参考优秀 Skills
+### Reference Excellent Skills
 
-浏览 NovelWeave Skills Registry 获取灵感：
+Browse the NovelWeave Skills Registry for inspiration:
 
 - https://github.com/wordflowlab/novelweave-skills-registry
 
-### 获取帮助
+### Get Help
 
-- [Discord 社区](https://discord.gg/novelweave) - 讨论和问答
-- [GitHub Issues](https://github.com/wordflowlab/novelweave/issues) - 报告问题
-- [文档网站](https://docs.novelweave.com) - 完整文档
+- [Discord Community](https://discord.gg/novelweave) - Discussion and Q&A
+- [GitHub Issues](https://github.com/wordflowlab/novelweave/issues) - Report issues
+- [Documentation Website](https://docs.novelweave.com) - Full documentation
 
-### 分享您的 Skills
+### Share Your Skills
 
-考虑将优秀的 Skills 分享到社区：
+Consider sharing your excellent Skills with the community:
 
-1. Fork Skills Registry 仓库
-2. 添加您的 Skill
-3. 提交 Pull Request
-4. 等待审核和合并
+1. Fork the Skills Registry repository
+2. Add your Skill
+3. Submit a Pull Request
+4. Wait for review and merge
 
 ---
 
-**版本**: v0.13.0
-**最后更新**: 2025-10-19
+**Version**: v0.13.0
+**Last Updated**: 2025-10-19
 
-## 附录：完整示例 Skill
+## Appendix: Complete Example Skill
 
-以下是一个完整的、符合所有最佳实践的 Skill 示例：
+Here is a complete Skill example that follows all best practices:
 
-### 文件结构
+### File Structure
 
 ```
 .agent/skills/character-consistency/
 ├── SKILL.md
 ├── examples/
-│   ├── personality-tracking.md
-│   └── appearance-consistency.md
+│ ├── personality-tracking.md
+│ └── appearance-consistency.md
 └── templates/
-    └── character-profile.md
+ └── character-profile.md
 ```
 
-### SKILL.md 完整内容
+### SKILL.md Full Content
 
 ```markdown
 ---
 name: character-consistency-checker
-description: 检查和维护小说中角色的一致性，包括性格、外貌、能力和行为模式
+description: Checks and maintains character consistency in a novel, including personality, appearance, abilities, and behavior patterns.
 version: 1.0.0
 keywords:
-    - character
-    - consistency
-    - continuity
-    - personality
-    - appearance
-    - behavior
+ - character
+ - consistency
+ - continuity
+ - personality
+ - appearance
+ - behavior
 whenToUse: |
-    当审查小说以检查角色一致性时使用；
-    当发现角色行为或描述可能矛盾时使用；
-    当创建新章节需要确保角色设定一致时使用
+ Use when reviewing a novel to check for character consistency;
+ Use when you find that a character's behavior or description may be contradictory;
+ Use when creating a new chapter and need to ensure character settings are consistent
 requiredModes:
-    - novelist
-    - editor
+ - novelist
+ - editor
 ---
 
-# 角色一致性检查
+# Character Consistency Check
 
-## 概述
+## Overview
 
-角色一致性是小说质量的关键要素。本 Skill 提供系统的检查方法，
-帮助发现和修复角色设定、行为、外貌等方面的矛盾。
+Character consistency is a key element of a novel's quality. This Skill provides a systematic checking method,
+helping to find and fix contradictions in character settings, behavior, appearance, etc.
 
-## 核心检查维度
+## Core Check Dimensions
 
-### 1. 外貌一致性
+### 1. Appearance Consistency
 
-#### 检查清单
+#### Checklist
 
-**基本特征**：
+**Basic Features**:
 
-- [ ] 身高体型描述前后一致
-- [ ] 发色发型没有未说明的变化
-- [ ] 眼睛颜色保持一致
-- [ ] 特殊标记（疤痕、胎记等）持续存在
+- [ ] Height and body shape descriptions are consistent
+- [ ] Hair color and style do not change without explanation
+- [ ] Eye color remains consistent
+- [ ] Special marks (scars, birthmarks, etc.) are persistent
 
-**服饰风格**：
+**Clothing Style**:
 
-- [ ] 穿衣风格符合角色设定
-- [ ] 特殊饰品（如常戴的项链）有连贯性
+- [ ] Clothing style is consistent with the character's setting
+- [ ] Special accessories (such as a frequently worn necklace) are consistent
 
-**年龄外貌**：
+**Age and Appearance**:
 
-- [ ] 外貌描述符合时间线
-- [ ] 岁数变化合理（如有时间跨度）
+- [ ] Appearance description matches the timeline
+- [ ] Age changes are reasonable (if there is a time span)
 
-#### 常见错误
+#### Common Errors
 
-❌ **矛盾示例**：
+❌ **Contradictory Example**:
 ```
 
-第一章："她有一头乌黑的长发。"
-第五章："她金色的卷发在阳光下闪闪发光。"
-
-```
-
-✅ **修正方法**：
-1. 如果需要改变，明确说明：
-```
-
-"她染了头发，从黑色变成了金色。"
-
-```
-2. 或保持一致：
-```
-
-第五章："她乌黑的长发在阳光下泛着光泽。"
+Chapter 1: "She had long, black hair."
+Chapter 5: "Her golden curls shimmered in the sun."
 
 ```
 
-### 2. 性格一致性
-
-#### 核心性格特征追踪
-
-为每个主要角色建立性格档案：
-
-| 特征维度 | 设定 | 关键表现 |
-|----------|------|----------|
-| 内向/外向 | 内向 | 避免大型社交场合 |
-| 决策方式 | 理性为主 | 重要决定基于逻辑分析 |
-| 情绪表达 | 克制 | 很少直接表露情感 |
-| 行为模式 | 谨慎 | 做事有详细计划 |
-
-#### 检查方法
-
-**场景测试**：
+✅ **Correction Method**:
+1. If a change is needed, explain it clearly:
 ```
 
-如果角色在类似情境下，行为是否一致？
+"She had dyed her hair from black to gold."
 
-第三章场景：在商务谈判中冷静理性
-第七章场景：在另一个商务场合突然冲动决策 ❌
+```
+2. Or maintain consistency:
+```
 
-除非有明确的性格发展或特殊原因说明。
+Chapter 5: "Her long, black hair shone in the sun."
 
 ```
 
-**对话风格测试**：
-- 词汇选择是否一致（正式/随意）
-- 语气是否符合性格（幽默/严肃）
-- 表达习惯是否连贯（口头禅、说话方式）
+### 2. Personality Consistency
 
-### 3. 能力一致性
+#### Core Personality Trait Tracking
 
-#### 技能和知识
+Create a personality profile for each main character:
 
-**检查项**：
-- [ ] 专业技能水平前后一致
-- [ ] 知识范围符合教育和经历背景
-- [ ] 能力的提升有合理的学习过程
+| Trait Dimension | Setting | Key Behavior |
+| --- | --- | --- |
+| Introvert/Extrovert | Introvert | Avoids large social gatherings |
+| Decision Making | Primarily rational | Important decisions are based on logical analysis |
+| Emotional Expression | Restrained | Rarely shows emotions directly |
+| Behavior Pattern | Cautious | Acts with a detailed plan |
 
-**示例分析**：
+#### Checking Method
 
-❌ **不一致**：
+**Scenario Test**:
 ```
 
-第二章：她不会做饭，连煮面都能烧焦。
-第六章：她做了一桌精致的法国菜。
-（中间没有学习过程）
+If the character is in a similar situation, is their behavior consistent?
 
-```
+Chapter 3 scene: Calm and rational in a business negotiation
+Chapter 7 scene: Suddenly makes an impulsive decision in another business situation ❌
 
-✅ **一致（有成长）**：
-```
-
-第二章：她不会做饭。
-第四章：为了他，她开始学习烹饪。
-第六章：经过几个月的练习，她做出了像样的法国菜。
+Unless there is a clear character development or a special reason.
 
 ```
 
-### 4. 行为模式一致性
+**Dialogue Style Test**:
+- Is vocabulary choice consistent (formal/casual)?
+- Is the tone consistent with the personality (humorous/serious)?
+- Are speech habits consistent (catchphrases, way of speaking)?
 
-#### 习惯性行为
+### 3. Ability Consistency
 
-记录和追踪：
-- 紧张时的小动作
-- 思考时的习惯
-- 口头禅和特定用语
-- 日常作息模式
+#### Skills and Knowledge
 
-**示例**：
+**Checklist**:
+- [ ] Professional skill level is consistent
+- [ ] Scope of knowledge is consistent with education and experience
+- [ ] Skill improvement has a reasonable learning process
+
+**Example Analysis**:
+
+❌ **Inconsistent**:
 ```
 
-设定：主角紧张时会咬指甲
-
-第一章：她咬着指甲，盯着考试成绩。✅
-第八章：面试前，她紧张地咬起指甲。✅
-
-```
-
-#### 价值观和立场
-
-**核心价值观应当稳定**，除非有重大事件改变：
+Chapter 2: She can't cook, she can even burn noodles.
+Chapter 6: She made an exquisite French meal.
+(No learning process in between)
 
 ```
 
-角色核心价值：诚实正直
+✅ **Consistent (with growth)**:
+```
 
-❌ 突然撒谎欺骗（无充分理由）
-✅ 面临道德困境，最终仍选择诚实
-✅ 经历重大背叛后，价值观发生转变（有铺垫）
+Chapter 2: She can't cook.
+Chapter 4: For him, she started to learn to cook.
+Chapter 6: After a few months of practice, she made a decent French meal.
+
+```
+
+### 4. Behavior Pattern Consistency
+
+#### Habitual Behaviors
+
+Record and track:
+- Small movements when nervous
+- Habits when thinking
+- Catchphrases and specific phrases
+- Daily routines
+
+**Example**:
+```
+
+Setting: The protagonist bites their nails when nervous
+
+Chapter 1: She bit her nails, staring at the exam results. ✅
+Chapter 8: Before the interview, she nervously bit her nails. ✅
+
+```
+
+#### Values and Stances
+
+**Core values should be stable**, unless a major event changes them:
+
+```
+
+Character's core value: Honesty and integrity
+
+❌ Suddenly lies and deceives (without sufficient reason)
+✅ Faces a moral dilemma, but ultimately chooses honesty
+✅ Values change after a major betrayal (with foreshadowing)
 
 ````
 
-## 检查流程
+## Checking Process
 
-### 第一步：建立角色档案
+### Step 1: Create a Character Profile
 
-使用[角色档案模板](./templates/character-profile.md)：
+Use the [Character Profile Template](./templates/character-profile.md):
 
 ```markdown
-# [角色名]档案
+# [Character Name] Profile
 
-## 基本信息
-- 姓名：
-- 年龄：
-- 职业：
+## Basic Information
+- Name:
+- Age:
+- Occupation:
 
-## 外貌特征
-- 身高：
-- 体型：
-- 发型发色：
-- 特殊标记：
+## Appearance
+- Height:
+- Body type:
+- Hair style and color:
+- Special marks:
 
-## 性格特征
-- 核心性格：
-- 行为模式：
-- 说话方式：
+## Personality Traits
+- Core personality:
+- Behavior patterns:
+- Way of speaking:
 
-## 能力技能
-- 专业技能：
-- 特殊能力：
-- 弱点：
+## Abilities and Skills
+- Professional skills:
+- Special abilities:
+- Weaknesses:
 ````
 
-### 第二步：场景对照检查
+### Step 2: Scene Comparison Check
 
-逐章检查，对照档案：
+Check chapter by chapter, comparing with the profile:
 
-1. 标记所有角色出场场景
-2. 提取该场景的角色描述和行为
-3. 与档案对照，发现矛盾
+1. Mark all scenes where the character appears
+2. Extract the character's description and behavior in that scene
+3. Compare with the profile to find contradictions
 
-### 第三步：时间线验证
+### Step 3: Timeline Verification
 
 ```
-事件 1：第3章，角色 18 岁
-事件 2：第10章，描述"三年后"
-事件 3：第10章后续，角色应该 21 岁
+Event 1: Chapter 3, character is 18 years old
+Event 2: Chapter 10, described as "three years later"
+Event 3: Following Chapter 10, the character should be 21 years old
 
-检查：年龄、外貌、能力发展是否匹配时间线
+Check: Do age, appearance, and skill development match the timeline?
 ```
 
-### 第四步：修正矛盾
+### Step 4: Correct Contradictions
 
-发现矛盾后，选择修正策略：
+After finding a contradiction, choose a correction strategy:
 
-| 策略     | 适用场景       | 示例         |
-| -------- | -------------- | ------------ |
-| 统一描述 | 简单描述错误   | 统一发色描述 |
-| 添加过渡 | 需要合理化变化 | 添加学习过程 |
-| 调整剧情 | 矛盾影响情节   | 修改事件顺序 |
+| Strategy | Applicable Scenario | Example |
+| --- | --- | --- |
+| Unify Description | Simple description error | Unify hair color description |
+| Add Transition | Need to rationalize a change | Add a learning process |
+| Adjust Plot | Contradiction affects the plot | Modify the event sequence |
 
-## 实用工具
+## Practical Tools
 
-### 一致性检查表
+### Consistency Checklist
 
-在每章完成后检查：
+Check after completing each chapter:
 
 ```markdown
-## [章节X] 一致性检查
+## [Chapter X] Consistency Check
 
-### 角色A
+### Character A
 
-- [ ] 外貌描述一致
-- [ ] 性格表现符合设定
-- [ ] 能力使用合理
-- [ ] 行为符合动机
+- [ ] Appearance description is consistent
+- [ ] Personality expression is consistent with settings
+- [ ] Ability usage is reasonable
+- [ ] Behavior is consistent with motivation
 
-### 角色B
+### Character B
 
-- [ ] 外貌描述一致
-- [ ] 性格表现符合设定
-- [ ] 能力使用合理
-- [ ] 行为符合动机
+- [ ] Appearance description is consistent
+- [ ] Personality expression is consistent with settings
+- [ ] Ability usage is reasonable
+- [ ] Behavior is consistent with motivation
 ```
 
-### 角色关系图
+### Character Relationship Diagram
 
-追踪角色间关系的变化：
+Track the changes in relationships between characters:
 
 ```
-初期：A 和 B 陌生
-第5章：开始合作
-第10章：成为朋友
-第15章：产生信任
+Initial: A and B are strangers
+Chapter 5: Begin to cooperate
+Chapter 10: Become friends
+Chapter 15: Trust is established
 
-检查：互动方式是否匹配关系进展
+Check: Does the interaction style match the relationship progress?
 ```
 
-## 常见问题
+## Frequently Asked Questions
 
-### Q: 角色成长和一致性如何平衡？
+### Q: How to balance character growth and consistency?
 
 A:
 
-- 一致性不等于静态不变
-- 角色可以成长，但需要：
-    1. 合理的触发事件
-    2. 渐进的变化过程
-    3. 保留核心特质
+- Consistency does not mean static
+- Characters can grow, but it requires:
+ 1. A reasonable triggering event
+ 2. A gradual process of change
+ 3. Retention of core traits
 
-**示例**：
+**Example**:
 
 ```
-角色核心：善良（保持）
-初期表现：容易被骗（可以改变）
-成长后：依然善良，但学会了保护自己
+Character core: Kind (maintained)
+Initial behavior: Easily deceived (can be changed)
+After growth: Still kind, but has learned to protect themselves
 ```
 
-### Q: 如何处理角色在不同人视角下的差异？
+### Q: How to handle differences in a character's perspective from different people?
 
 A:
 
-- 核心特征应该一致
-- 不同视角可以有不同侧面
-- 但不应该完全矛盾
+- Core features should be consistent
+- Different perspectives can have different sides
+- But they should not be completely contradictory
 
-**示例**：
-
-```
-A 的视角：B 很冷漠（B 对 A 确实冷淡）✅
-C 的视角：B 很热情（B 对 C 更亲近）✅
-
-但是：
-A 的视角：B 是金发（客观事实）
-C 的视角：B 是黑发（矛盾）❌
-```
-
-## 进阶技巧
-
-### 性格弧光追踪
-
-记录角色的内在变化轨迹：
+**Example**:
 
 ```
-第1章：[畏惧] → 第5章：[犹豫] → 第10章：[尝试] → 第15章：[掌握]
+A's perspective: B is cold (B is indeed cold to A) ✅
+C's perspective: B is enthusiastic (B is closer to C) ✅
 
-每个阶段的行为应该匹配内在状态。
+But:
+A's perspective: B is blonde (objective fact)
+C's perspective: B is brunette (contradiction) ❌
 ```
 
-### 多角色一致性矩阵
+## Advanced Techniques
 
-| 章节 | 角色A状态  | 角色B状态  | 关系状态   |
-| ---- | ---------- | ---------- | ---------- |
-| 1-3  | 封闭、防备 | 好奇、主动 | 陌生、试探 |
-| 4-7  | 渐渐打开   | 持续接近   | 合作、渐近 |
-| 8-10 | 信任建立   | 情感投入   | 亲密、复杂 |
+### Personality Arc Tracking
 
-## 参考资源
+Record the character's internal change trajectory:
 
-- [性格追踪示例](./examples/personality-tracking.md)
-- [外貌一致性示例](./examples/appearance-consistency.md)
-- [角色档案模板](./templates/character-profile.md)
+```
+Chapter 1: [Fear] → Chapter 5: [Hesitation] → Chapter 10: [Attempt] → Chapter 15: [Mastery]
+
+The behavior at each stage should match the internal state.
+```
+
+### Multi-Character Consistency Matrix
+
+| Chapter | Character A State | Character B State | Relationship State |
+| --- | --- | --- | --- |
+| 1-3 | Closed, defensive | Curious, proactive | Strangers, probing |
+| 4-7 | Gradually opening up | Continuously approaching | Cooperation, getting closer |
+| 8-10 | Trust established | Emotionally invested | Intimate, complex |
+
+## Resources
+
+- [Personality Tracking Example](./examples/personality-tracking.md)
+- [Appearance Consistency Example](./examples/appearance-consistency.md)
+- [Character Profile Template](./templates/character-profile.md)
 
 ---
 
-## 变更日志
+## Changelog
 
 ### v1.0.0 (2025-10-01)
 
-- 初始版本发布
-- 包含四个核心检查维度
-- 提供完整的检查流程和工具
+- Initial version release
+- Includes four core check dimensions
+- Provides a complete checking process and tools
 
 ```
 
-这个示例展示了：
-- ✅ 完整的元数据
-- ✅ 清晰的结构
-- ✅ 具体可操作的指导
-- ✅ 丰富的示例
-- ✅ 实用的工具和模板
-- ✅ 常见问题解答
-- ✅ 版本管理
+This example shows:
+- ✅ Complete metadata
+- ✅ Clear structure
+- ✅ Specific, actionable guidance
+- ✅ Rich examples
+- ✅ Practical tools and templates
+- ✅ FAQ
+- ✅ Version management
 
 ---
 
-希望这份最佳实践指南能帮助您创建高质量的 Agent Skills！
-```
+We hope this best practices guide helps you create high-quality Agent Skills!

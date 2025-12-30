@@ -1,356 +1,356 @@
 ---
-description: 定义故事规格，明确要创造什么样的作品
-argument-hint: [故事描述]
+description: "Define the story specifications, clarifying what kind of work is to be created."
+argument-hint: "[Story description]"
 ---
 
-用户输入：$ARGUMENTS
+User Input: $ARGUMENTS
 
-## 目标
+## Objective
 
-像产品规格书（PRD）一样定义故事，明确"要创造什么"而非"如何创造"。生成完整详细的九章规格文档，输出带有 `[需要澄清]` 标记的规格，为后续澄清步骤留出空间。
+To define the story like a product requirements document (PRD), clarifying "what to create" rather than "how to create it." Generate a complete and detailed nine-chapter specification document, and output the specifications with `[Clarification Needed]` markers to leave room for subsequent clarification steps.
 
-## 项目结构检查
+## Project Structure Check
 
-首先确保项目目录结构存在。使用 `execute_command` 工具执行：
+First, ensure the project directory structure exists. Use the `execute_command` tool to execute:
 
 ```bash
 mkdir -p memory stories spec/tracking
 ```
 
-## 执行步骤
+## Execution Steps
 
-### 1. 确定故事名称和路径
+### 1. Determine Story Name and Path
 
-**如果是新故事**：
+**For a new story**:
 
-- 从用户输入中提取故事名称，或询问用户
-- 创建路径：`stories/001-[story-name]/specification.md`
-- 使用序号（001, 002...）避免冲突
+-   Extract the story name from user input, or ask the user.
+-   Create the path: `stories/001-[story-name]/specification.md`.
+-   Use sequential numbers (001, 002...) to avoid conflicts.
 
-**如果是更新现有故事**：
+**For updating an existing story**:
 
-- 使用现有的故事路径
+-   Use the existing story path.
 
-### 2. 检查宪法合规性
+### 2. Check for Constitution Compliance
 
-使用 `read_file` 工具尝试读取 `memory/constitution.md`：
+Use the `read_file` tool to attempt to read `memory/constitution.md`:
 
-- 如果文件存在：
-    - 加载宪法原则
-    - 确保规格符合宪法价值观
-    - 在规格中引用相关原则
-- 如果文件不存在：
-    - 继续创建规格，但建议用户先创建宪法
+-   If the file exists:
+    -   Load the constitutional principles.
+    -   Ensure the specifications comply with the constitutional values.
+    -   Reference the relevant principles in the specifications.
+-   If the file does not exist:
+    -   Continue creating the specifications, but recommend that the user create a constitution first.
 
-### 3. 创建故事规格文档
+### 3. Create the Story Specification Document
 
-使用完整九章规格结构生成详细规格：
+Generate detailed specifications using the full nine-chapter structure:
 
 ```markdown
-# 故事规格书
+# Story Specification Document
 
-## 元数据
+## Metadata
 
-- 故事名称：[名称]
-- 版本：1.0.0
-- 创建日期：[YYYY-MM-DD]
-- 状态：草案
-- 作者：[作者名]
+- Story Name: [Name]
+- Version: 1.0.0
+- Creation Date: [YYYY-MM-DD]
+- Status: Draft
+- Author: [Author Name]
 
-## 一、故事概要
+## 1. Story Overview
 
-### 一句话故事（电梯演讲）
+### One-Sentence Story (Elevator Pitch)
 
-[30字以内描述故事核心]
+[Describe the core of the story in under 30 words]
 
-### 故事简介（100-200字）
+### Synopsis (100-200 words)
 
-[扩展描述，包含主要冲突和结局暗示]
+[Expanded description, including the main conflict and a hint of the ending]
 
-### 核心主题
+### Core Themes
 
-- 主题：[如"成长"、"救赎"、"复仇"]
-- 深层含义：[想要表达什么]
-- 情感内核：[希望读者感受到什么]
+- Theme: [e.g., "Growth," "Redemption," "Revenge"]
+- Deeper Meaning: [What you want to express]
+- Emotional Core: [What you want the reader to feel]
 
-## 二、目标定位
+## 2. Target Positioning
 
-### 目标读者画像
+### Target Audience Profile
 
-- 年龄段：[需要澄清：具体年龄范围]
-- 性别倾向：[需要澄清：男性向/女性向/通用]
-- 阅读层次：[需要澄清：入门/进阶/资深]
-- 类型偏好：[玄幻/都市/历史等]
-- 阅读场景：[碎片时间/深度阅读]
+- Age Group: [Clarification Needed: Specific age range]
+- Gender Skew: [Clarification Needed: Male-oriented/Female-oriented/General]
+- Reading Level: [Clarification Needed: Beginner/Intermediate/Advanced]
+- Genre Preference: [Fantasy/Urban/Historical, etc.]
+- Reading Scenario: [Fragmented time/Deep reading]
 
-### 市场定位
+### Market Positioning
 
-- 主类型：[需要澄清：爽文/悬疑/言情/严肃文学/科幻/奇幻/历史/都市/其他]
-- 子类型：[具体流派，如系统流/本格推理/霸总文等]
-- 类型融合：[如有，如悬疑+爱情]
-- 类型标签：[主标签] + [副标签]
-- 竞品分析：类似[作品1]的[特点] + [作品2]的[特点]
-- 差异化：[需要澄清：核心卖点是什么]
+- Main Genre: [Clarification Needed: 爽文/Mystery/Romance/Serious Literature/Sci-Fi/Fantasy/Historical/Urban/Other]
+- Sub-genre: [Specific sub-genre, e.g., System-flow/Classic Detective/CEO novel, etc.]
+- Genre Fusion: [If any, e.g., Mystery + Romance]
+- Genre Tags: [Main Tag] + [Secondary Tag]
+- Competitive Analysis: Like [Work 1]'s [feature] + [Work 2]'s [feature]
+- Differentiation: [Clarification Needed: What is the core selling point?]
 
-## 三、成功标准
+## 3. Success Criteria
 
-### 量化指标
+### Quantitative Metrics
 
-- 目标字数：[需要澄清：3万/10万/50万]
-- 更新频率：[需要澄清：日更/周更/月更]
-- 完成时间：[预计时长]
-- 商业目标：[如适用]
+- Target Word Count: [Clarification Needed: 30k/100k/500k]
+- Update Frequency: [Clarification Needed: Daily/Weekly/Monthly]
+- Completion Time: [Estimated duration]
+- Commercial Goals: [If applicable]
 
-### 质量标准
+### Quality Standards
 
-- 逻辑一致性：[必须/应该]无明显漏洞
-- 人物丰满度：主角有[X]个层次，配角有[Y]个层次
-- 情节紧凑度：[需要澄清：每章都有冲突/允许过渡章节]
-- 文字水准：[需要澄清：通俗易懂/文学性/专业性]
+- Logical Consistency: [Must/Should] have no obvious loopholes.
+- Character Richness: The protagonist has [X] layers, supporting characters have [Y] layers.
+- Plot Compactness: [Clarification Needed: Conflict in every chapter/Transitional chapters allowed]
+- Writing Standard: [Clarification Needed: Easy to understand/Literary/Professional]
 
-### 读者反馈指标
+### Reader Feedback Metrics
 
-- 目标评分：[如适用]
-- 互动率：[评论/收藏比例]
-- 完读率：[期望的读者完成度]
+- Target Rating: [If applicable]
+- Engagement Rate: [Comment/Collection ratio]
+- Completion Rate: [Expected reader completion percentage]
 
-## 四、核心需求
+## 4. Core Requirements
 
-### 必须包含（P0）
+### Must-Haves (P0)
 
-1. [核心情节元素1]
-2. [核心人物关系]
-3. [核心冲突设定]
-4. [必要的世界观元素]
+1.  [Core plot element 1]
+2.  [Core character relationship]
+3.  [Core conflict setup]
+4.  [Necessary world-building element]
 
-### 应该包含（P1）
+### Should-Haves (P1)
 
-1. [增强体验的元素]
-2. [深化主题的内容]
-3. [丰富人物的支线]
+1.  [Elements that enhance the experience]
+2.  [Content that deepens the theme]
+3.  [Subplots that enrich the characters]
 
-### 可以包含（P2）
+### Could-Haves (P2)
 
-1. [锦上添花的内容]
-2. [可选的支线]
-3. [额外的彩蛋]
+1.  [Nice-to-have content]
+2.  [Optional subplots]
+3.  [Additional easter eggs]
 
-## 五、线索管理规格
+## 5. Clue Management Specification
 
-> **多线索管理说明**：本章节定义故事的所有线索(主线、副线)及其管理策略，用于解决多线索并行推进、交汇时机控制、修改后一致性保证等问题。
+> **Multi-Clue Management Note**: This chapter defines all story clues (main plot, subplots) and their management strategies to address issues like parallel progression, timing of intersections, and ensuring consistency after modifications.
 
-### 5.1 线索定义表
+### 5.1 Clue Definition Table
 
-定义所有故事线索的基本信息：
+Define the basic information for all story clues:
 
-| 线索ID | 线索名称                | 类型               | 优先级   | 起止章节        | 核心冲突         | 主要角色         |
-| ------ | ----------------------- | ------------------ | -------- | --------------- | ---------------- | ---------------- |
-| PL-01  | [线索1名称，如"家庭线"] | 主线/支线/主线支撑 | P0/P1/P2 | [起始章-结束章] | [线索的核心冲突] | [涉及的主要角色] |
-| PL-02  | [线索2名称，如"爱情线"] | 主线/支线/主线支撑 | P0/P1/P2 | [起始章-结束章] | [线索的核心冲突] | [涉及的主要角色] |
+| Clue ID | Clue Name | Type | Priority | Start-End Chapters | Core Conflict | Main Characters |
+| --- | --- | --- | --- | --- | --- | --- |
+| PL-01 | [Clue 1 Name, e.g., "Family Line"] | Main/Sub/Main-support | P0/P1/P2 | [Start Ch - End Ch] | [Core conflict of the clue] | [Main characters involved] |
+| PL-02 | [Clue 2 Name, e.g., "Love Line"] | Main/Sub/Main-support | P0/P1/P2 | [Start Ch - End Ch] | [Core conflict of the clue] | [Main characters involved] |
 
-**说明**：
+**Notes**:
 
-- 线索ID统一格式：PL-XX(Plotline的缩写)
-- 类型：主线(驱动故事发展)、支线(丰富情节)、主线支撑(为主线服务)
-- 优先级：P0(必须)、P1(重要)、P2(可选)
+- Clue ID format: PL-XX (abbreviation for Plotline)
+- Type: Main (drives the story), Sub (enriches the plot), Main-support (serves the main plot)
+- Priority: P0 (Must-have), P1 (Important), P2 (Optional)
 
-### 5.2 线索节奏规划
+### 5.2 Clue Pacing Plan
 
-规划每条线索在不同阶段的活跃程度：
+Plan the activity level of each clue in different stages:
 
-| 线索ID | 第一卷      | 第二卷      | 第三卷      | 第四卷      |
-| ------ | ----------- | ----------- | ----------- | ----------- |
-| PL-01  | ⭐⭐⭐ 活跃 | ⭐⭐ 中等   | ⭐ 背景     | ⭐⭐⭐ 活跃 |
-| PL-02  | ⭐⭐ 启动   | ⭐⭐⭐ 活跃 | ⭐⭐⭐ 活跃 | ⭐⭐ 收尾   |
+| Clue ID | Volume 1 | Volume 2 | Volume 3 | Volume 4 |
+| --- | --- | --- | --- | --- |
+| PL-01 | ⭐⭐⭐ Active | ⭐⭐ Medium | ⭐ Background | ⭐⭐⭐ Active |
+| PL-02 | ⭐⭐ Initiated | ⭐⭐⭐ Active | ⭐⭐⭐ Active | ⭐⭐ Concluding |
 
-**说明**：
+**Notes**:
 
-- ⭐⭐⭐ 活跃：本卷重点推进，大量篇幅
-- ⭐⭐ 中等：正常推进，适量篇幅
-- ⭐ 背景：偶尔提及，保持存在感
-- ❌ 未出场：线索尚未启动
+- ⭐⭐⭐ Active: Heavily featured in this volume, significant portion of the text.
+- ⭐⭐ Medium: Progresses normally, moderate portion of the text.
+- ⭐ Background: Mentioned occasionally to maintain presence.
+- ❌ Not present: The clue has not yet been introduced.
 
-### 5.3 线索交汇点规划
+### 5.3 Clue Intersection Point Plan
 
-预先规划线索之间的交汇点，避免AI随意发挥：
+Pre-plan the intersection points between clues to avoid arbitrary development by the AI:
 
-| 交汇点ID | 章节     | 涉及线索          | 交汇内容                          | 预期效果             |
-| -------- | -------- | ----------------- | --------------------------------- | -------------------- |
-| X-001    | [章节号] | PL-XX+PL-YY       | [两条/多条线索如何交汇，发生什么] | [对故事和人物的影响] |
-| X-002    | [章节号] | PL-XX+PL-YY+PL-ZZ | [交汇的具体内容]                  | [预期产生的效果]     |
+| Intersection ID | Chapter | Involved Clues | Intersection Content | Expected Effect |
+| --- | --- | --- | --- | --- |
+| X-001 | [Chapter No.] | PL-XX + PL-YY | [How two/more clues intersect, what happens] | [Impact on the story and characters] |
+| X-002 | [Chapter No.] | PL-XX + PL-YY + PL-ZZ | [Specific content of the intersection] | [Expected effect to be produced] |
 
-**说明**：
+**Notes**:
 
-- 交汇点ID统一格式：X-XXX(Intersection的首字母)
-- 涉及线索：列出所有在此处交汇的线索ID
-- 交汇内容：具体的情节或事件
-- 预期效果：情感冲突、情节转折、人物成长等
+- Intersection ID format: X-XXX (from the first letter of Intersection)
+- Involved Clues: List all clue IDs that intersect here.
+- Intersection Content: The specific plot or event.
+- Expected Effect: Emotional conflict, plot twist, character growth, etc.
 
-### 5.4 伏笔管理表
+### 5.4 Foreshadowing Management Table
 
-管理所有伏笔的埋设与揭晓，确保不遗漏：
+Manage the planting and revealing of all foreshadowing to ensure nothing is missed:
 
-| 伏笔ID | 埋设章节 | 涉及线索    | 伏笔内容                 | 揭晓章节 | 揭晓方式                 |
-| ------ | -------- | ----------- | ------------------------ | -------- | ------------------------ |
-| F-001  | [章节号] | PL-XX       | [埋下什么伏笔，具体内容] | [章节号] | [如何揭晓，通过什么事件] |
-| F-002  | [章节号] | PL-XX+PL-YY | [跨线索的伏笔内容]       | [章节号] | [揭晓方式]               |
+| Foreshadow ID | Planting Chapter | Involved Clues | Foreshadowing Content | Reveal Chapter | Reveal Method |
+| --- | --- | --- | --- | --- | --- |
+| F-001 | [Chapter No.] | PL-XX | [What foreshadowing is planted, specific content] | [Chapter No.] | [How it is revealed, through what event] |
+| F-002 | [Chapter No.] | PL-XX + PL-YY | [Cross-clue foreshadowing content] | [Chapter No.] | [Reveal method] |
 
-**说明**：
+**Notes**:
 
-- 伏笔ID统一格式：F-XXX(Foreshadowing的首字母)
-- 涉及线索：伏笔关联的线索，可能跨多条线索
-- 埋设与揭晓的章节号必须明确，避免遗忘
+- Foreshadowing ID format: F-XXX (from the first letter of Foreshadowing)
+- Involved Clues: The clues associated with the foreshadowing, may span multiple clues.
+- The chapter numbers for planting and revealing must be clear to avoid being forgotten.
 
-### 5.5 线索修改决策矩阵
+### 5.5 Clue Modification Decision Matrix
 
-当需要修改某条线索时，必须按此流程评估影响：
+When a clue needs to be modified, this process must be followed to assess the impact:
 
-**修改检查清单**：
+**Modification Checklist**:
 
-1. 检查 5.2节：该线索在哪些卷活跃？活跃度是否需要调整？
-2. 检查 5.3节：该线索涉及哪些交汇点？交汇点时机是否需要改变？
-3. 检查 5.4节：该线索涉及哪些伏笔？伏笔埋设/揭晓是否需要调整？
-4. 检查 creative-plan.md：哪些章节段需要同步修改？
-5. 检查 tasks.md：哪些写作任务需要重新规划？
-6. 检查 plot-tracker.json：当前进展如何，后续如何调整？
+1.  Check section 5.2: In which volumes is this clue active? Does the activity level need to be adjusted?
+2.  Check section 5.3: Which intersection points does this clue involve? Does the timing of the intersection points need to be changed?
+3.  Check section 5.4: Which foreshadowing does this clue involve? Does the planting/revealing of the foreshadowing need to be adjusted?
+4.  Check `creative-plan.md`: Which chapter segments need to be synchronized?
+5.  Check `tasks.md`: Which writing tasks need to be replanned?
+6.  Check `plot-tracker.json`: What is the current progress, and how should it be adjusted going forward?
 
-**示例**：假设修改PL-03(爱情线)，将某角色出场提前到第50章(原计划第100章)：
+**Example**: Suppose you modify PL-03 (Love Line) to have a character appear in Chapter 50 (originally planned for Chapter 100):
 
-- ✅ 交汇点X-004需要提前或取消
-- ✅ 第二卷的章节段活跃线索需要调整
-- ✅ 相关任务的"涉及线索"字段需要更新
-- ✅ 可能影响伏笔F-002的揭晓时机
+- ✅ Intersection point X-004 needs to be moved up or canceled.
+- ✅ The active clues in the chapter segments of Volume 2 need to be adjusted.
+- ✅ The "Involved Clues" field of related tasks needs to be updated.
+- ✅ It may affect the reveal timing of foreshadowing F-002.
 
-### 5.6 线索一致性原则
+### 5.6 Clue Consistency Principles
 
-**规划原则**：
+**Planning Principles**:
 
-- 每条线索必须有明确的起承转合
-- 主线占用总篇幅的40-60%
-- 支线不超过2-3条，避免过于分散
-- 线索交汇应服务于主题，不为交汇而交汇
-- 长时间休眠的线索(>20章)必须有合理理由
+-   Each clue must have a clear beginning, middle, and end.
+-   The main plot should occupy 40-60% of the total text.
+-   No more than 2-3 subplots to avoid being too scattered.
+-   Clue intersections should serve the theme, not just happen for the sake of it.
+-   Long-dormant clues (>20 chapters) must have a reasonable justification.
 
-**验证标准**：
+**Verification Standards**:
 
-- [ ] 所有线索都有明确的冲突和解决方案
-- [ ] 线索节奏分布合理，没有过度集中或空白
-- [ ] 交汇点数量适中(建议每50章2-3个)
-- [ ] 伏笔都有对应的揭晓计划
-- [ ] 修改决策矩阵可操作
+-   [ ] All clues have clear conflicts and resolutions.
+-   [ ] The pacing of clues is reasonably distributed, with no excessive concentration or gaps.
+-   [ ] The number of intersection points is moderate (2-3 per 50 chapters is recommended).
+-   [ ] All foreshadowing has a corresponding reveal plan.
+-   [ ] The modification decision matrix is actionable.
 
-## 六、约束条件
+## 6. Constraints
 
-### 内容红线
+### Content Red Lines
 
-- 绝对禁止：[如违法内容]
-- 需要避免：[如敏感话题]
-- 谨慎处理：[需要澄清：如何处理情感关系]
+-   Absolutely Prohibited: [e.g., illegal content]
+-   To be Avoided: [e.g., sensitive topics]
+-   Handle with Care: [Clarification Needed: How to handle romantic relationships]
 
-### 创作约束
+### Creative Constraints
 
-- 知识限制：[需要澄清：是否需要专业知识]
-- 时间限制：[完成期限]
-- 资源限制：[如需要的参考资料]
+-   Knowledge Limitations: [Clarification Needed: Is specialized knowledge required?]
+-   Time Constraints: [Completion deadline]
+-   Resource Constraints: [e.g., required reference materials]
 
-### 技术约束
+### Technical Constraints
 
-- 发布平台：[需要澄清：网文平台/出版/自媒体]
-- 格式要求：[章节长度等]
-- 更新要求：[固定时间等]
+-   Publishing Platform: [Clarification Needed: Web novel platform/Publishing/Self-media]
+-   Formatting Requirements: [Chapter length, etc.]
+-   Update Requirements: [Fixed times, etc.]
 
-## 七、风险评估
+## 7. Risk Assessment
 
-### 创作风险
+### Creative Risks
 
-- 写作难度：[需要澄清：挑战在哪里]
-- 灵感枯竭：[如何应对]
-- 逻辑漏洞：[复杂度评估]
-- 多线索管理：[需要澄清：线索数量是否过多]
+-   Writing Difficulty: [Clarification Needed: Where are the challenges?]
+-   Writer's Block: [How to cope]
+-   Logical Loopholes: [Complexity assessment]
+-   Multi-clue Management: [Clarification Needed: Is the number of clues too high?]
 
-### 市场风险
+### Market Risks
 
-- 同质化：[如何差异化]
-- 读者接受度：[需要澄清：创新是否过度]
-- 时效性：[题材是否会过时]
+-   Homogenization: [How to differentiate]
+-   Reader Acceptance: [Clarification Needed: Is the innovation excessive?]
+-   Timeliness: [Will the theme become outdated?]
 
-## 八、核心决策点 [需要澄清]
+## 8. Core Decision Points [Clarification Needed]
 
-以下关键决策需要在 `/clarify` 阶段明确：
+The following key decisions need to be clarified in the `/clarify` stage:
 
-1. [决策1：如主角性格是热血还是冷静]
-2. [决策2：如结局是开放还是圆满]
-3. [决策3：如叙事是单线还是多线]
-4. [决策4：如节奏是快速还是缓慢]
-5. [决策5：如风格是轻松还是严肃]
+1.  [Decision 1: e.g., Is the protagonist's personality passionate or calm?]
+2.  [Decision 2: e.g., Is the ending open or happy?]
+3.  [Decision 3: e.g., Is the narrative single-threaded or multi-threaded?]
+4.  [Decision 4: e.g., Is the pacing fast or slow?]
+5.  [Decision 5: e.g., Is the style lighthearted or serious?]
 
-## 九、验证清单
+## 9. Verification Checklist
 
-- [ ] 故事概要清晰明确
-- [ ] 目标读者定义准确
-- [ ] 成功标准可衡量
-- [ ] 核心需求已列出
-- [ ] 线索管理规格已定义
-- [ ] 约束条件已识别
-- [ ] 风险已评估
-- [ ] 关键决策点已标记
+-   [ ] The story overview is clear and concise.
+-   [ ] The target audience is accurately defined.
+-   [ ] The success criteria are measurable.
+-   [ ] The core requirements are listed.
+-   [ ] The clue management specification is defined.
+-   [ ] The constraints are identified.
+-   [ ] The risks are assessed.
+-   [ ] The key decision points are marked.
 
-## 附录：参考资料
+## Appendix: Reference Materials
 
-### 灵感来源
+### Sources of Inspiration
 
-- [来源1]
-- [来源2]
+-   [Source 1]
+-   [Source 2]
 
-### 参考作品
+### Reference Works
 
-- [作品1]：参考其[特点]
-- [作品2]：参考其[特点]
+-   [Work 1]: Reference its [feature]
+-   [Work 2]: Reference its [feature]
 
-### 补充说明
+### Additional Notes
 
-[其他需要说明的内容]
+[Other information that needs to be noted]
 ```
 
-### 4. 标记需要澄清的点
+### 4. Mark Points Needing Clarification
 
-标记所有需要进一步澄清的决策点：
+Mark all decision points that require further clarification:
 
-- 使用 `[需要澄清：具体问题]` 格式
-- 确保标记 5-10 个关键决策点
-- 这些将在 `/clarify` 步骤中处理
+-   Use the `[Clarification Needed: Specific question]` format.
+-   Ensure 5-10 key decision points are marked.
+-   These will be addressed in the `/clarify` step.
 
-### 5. 输出和保存
+### 5. Output and Save
 
-- 将规格保存到 `stories/[story-name]/specification.md`
-- 输出创建成功消息
-- 提示下一步：运行 `/clarify` 澄清关键决策
+-   Save the specifications to `stories/[story-name]/specification.md`.
+-   Output a success message.
+-   Prompt the next step: Run `/clarify` to clarify key decisions.
 
-## 重要限制
+## Important Restrictions
 
-⚠️ **只执行 /specify 命令的任务**：
+⚠️ **Only execute the task for the `/specify` command**:
 
-- 只生成并保存 specification.md 文件
-- 不要执行 /clarify、/plan、/tasks、/write、/analyze 等其他命令
-- 不要自动创建其他文件
-- 用户需要手动运行后续命令
+-   Only generate and save the `specification.md` file.
+-   Do not execute other commands like `/clarify`, `/plan`, `/tasks`, `/write`, `/analyze`.
+-   Do not automatically create other files.
+-   The user needs to manually run subsequent commands.
 
-## 注意事项
+## Precautions
 
-### 聚焦于 WHAT 而非 HOW
+### Focus on WHAT, not HOW
 
-- ✅ 正确："需要一个让读者恨之入骨的反派"
-- ❌ 错误："反派在第三章出场，使用倒叙手法"
+-   ✅ Correct: "We need a villain that the readers will despise."
+-   ❌ Incorrect: "The villain appears in Chapter 3, using a flashback."
 
-### 保持规格的灵活性
+### Maintain Flexibility in Specifications
 
-- 留出澄清空间
-- 标记所有不确定点为 `[需要澄清]`
+-   Leave room for clarification.
+-   Mark all uncertain points as `[Clarification Needed]`.
 
-### 与后续步骤的关系
+### Relationship with Subsequent Steps
 
-- 运行 `/clarify` 处理所有 `[需要澄清]` 标记
-- **澄清后**：运行 `/plan` 制定创作计划
-- **执行时**：运行 `/analyze` 验证实现是否符合规格
+-   Run `/clarify` to address all `[Clarification Needed]` markers.
+-   **After clarification**: Run `/plan` to develop a creative plan.
+-   **During execution**: Run `/analyze` to verify that the implementation meets the specifications.
 
-记住：**规格定义目标，而非路径。即使用户输入简短，也要生成完整详细的规格文档。**
+Remember: **Specifications define the goal, not the path. Even if the user input is brief, generate a complete and detailed specification document.**

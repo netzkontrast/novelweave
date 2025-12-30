@@ -1,127 +1,127 @@
 ---
-description: 管理和追踪角色关系变化
-argument-hint: [update | show | history | check]
+description: "Manage and track changes in character relationships."
+argument-hint: "[update | show | history | check]"
 ---
 
-# 角色关系管理
+# Character Relationship Management
 
-追踪和管理角色之间的关系动态，确保关系发展的合理性。
+Track and manage the dynamics of relationships between characters to ensure their development is logical.
 
-用户输入：$ARGUMENTS
+User Input: $ARGUMENTS
 
-## 项目结构检查
+## Project Structure Check
 
-首先确保项目目录结构存在。使用 `execute_command` 工具执行：
+First, ensure the project directory structure exists. Use the `execute_command` tool to execute:
 
 ```bash
 mkdir -p memory stories spec/tracking
 ```
 
-## 功能
+## Features
 
-1. **关系网络** - 维护角色之间的关系图谱
-2. **关系变化** - 记录关系的演变历程
-3. **派系管理** - 追踪各势力派系的对立与合作
-4. **情感追踪** - 管理角色间的情感发展
+1.  **Relationship Network** - Maintain a graph of relationships between characters.
+2.  **Relationship Changes** - Record the evolution of relationships over time.
+3.  **Faction Management** - Track the opposition and cooperation of various factions.
+4.  **Emotional Tracking** - Manage the emotional development between characters.
 
-## 使用方法
+## Usage
 
-支持以下操作：
+The following operations are supported:
 
-- `update` - 更新角色关系
-- `show` - 显示关系网络
-- `history` - 查看关系变化历史
-- `check` - 验证关系逻辑
+-   `update` - Update character relationships.
+-   `show` - Display the relationship network.
+-   `history` - View the history of relationship changes.
+-   `check` - Validate relationship logic.
 
-## 执行步骤
+## Execution Steps
 
-### 1. 加载关系数据
+### 1. Load Relationship Data
 
-使用 `read_file` 工具读取 `spec/tracking/relationships.json`：
+Use the `read_file` tool to read `spec/tracking/relationships.json`:
 
-- 如果文件存在，加载现有关系数据
-- 如果文件不存在，建议先运行 `/track-init` 初始化追踪系统
+-   If the file exists, load the existing relationship data.
+-   If the file does not exist, recommend running `/track-init` first to initialize the tracking system.
 
-### 2. 检查逻辑 (--check)
+### 2. Logic Check (`--check`)
 
-执行检查时，按照以下规则输出 Checklist：
+When performing a check, output a checklist according to the following rules:
 
-1. 文件与结构
+1.  **File and Structure**
 
-- CHK001 relationships.json 存在，且 JSON 格式有效
-- CHK002 角色字典 `characters` 存在；每个角色包含 `relationships` 或同等分类键
-- CHK003 支持两种结构：
-    - 内嵌 `relationships`：`{ characters: { name: { relationships: { allies:[], enemies:[], romantic:[], family:[], mentors:[], neutral:[] }}}}`
-    - 直挂分类键：`{ characters: { name: { allies:[], enemies:[], ... }}}`
+    -   CHK001 `relationships.json` exists and is in valid JSON format.
+    -   CHK002 The character dictionary `characters` exists; each character includes a `relationships` key or equivalent categorical keys.
+    -   CHK003 Two structures are supported:
+        -   Embedded `relationships`: `{ characters: { name: { relationships: { allies:[], enemies:[], romantic:[], family:[], mentors:[], neutral:[] }}}}`
+        -   Direct categorical keys: `{ characters: { name: { allies:[], enemies:[], ... }}}`
 
-2. 角色引用有效性
+2.  **Character Reference Validity**
 
-- CHK004 所有引用到的角色姓名，均在 `characters` 有对应节点（无“未建档角色”）
-- CHK005 关系两端均为字符串姓名，无空值
+    -   CHK004 All referenced character names have a corresponding node in `characters` (no "unprofiled characters").
+    -   CHK005 Both ends of a relationship are string names, with no null values.
 
-3. 变更历史（可选字段）
+3.  **Change History (Optional Field)**
 
-- CHK006 如存在 `history`，格式中包含 `chapter|date|changes`
-- CHK007 否则如存在 `relationshipChanges`，记录结构合理
+    -   CHK006 If `history` exists, the format includes `chapter|date|changes`.
+    -   CHK007 Otherwise, if `relationshipChanges` exists, the record structure is logical.
 
-4. 基本输出
+4.  **Basic Output**
 
-- 展示主角或第一个角色的主要关系分类（romantic/allies/mentors/enemies/family/neutral）
-- 展示最近的关系列表（history 或 relationshipChanges）
+    -   Display the main relationship categories for the protagonist or the first character (romantic/allies/mentors/enemies/family/neutral).
+    -   Display the most recent list of relationships (from `history` or `relationshipChanges`).
 
-若发现“未建档角色引用”，建议先补齐角色节点再继续写作。
+If an "unprofiled character reference" is found, recommend completing the character node before continuing to write.
 
-## 数据存储
+## Data Storage
 
-关系数据存储在 `spec/tracking/relationships.json`：
+Relationship data is stored in `spec/tracking/relationships.json`:
 
 ```json
 {
 	"characters": {
-		"主角": {
-			"盟友": ["角色A", "角色B"],
-			"敌对": ["角色C"],
-			"爱慕": ["角色D"],
-			"未知": ["角色E"]
+		"Protagonist": {
+			"Allies": ["Character A", "Character B"],
+			"Enemies": ["Character C"],
+			"Romantic Interest": ["Character D"],
+			"Unknown": ["Character E"]
 		}
 	},
 	"factions": {
-		"改革派": ["主角", "角色A"],
-		"保守派": ["角色C", "角色F"]
+		"Reformists": ["Protagonist", "Character A"],
+		"Conservatives": ["Character C", "Character F"]
 	}
 }
 ```
 
-## 输出示例
+## Output Example
 
 ```
-👥 角色关系网络
+👥 Character Relationship Network
 ━━━━━━━━━━━━━━━━━━━━
-主角：李中庸
-├─ 💕 爱慕：沈玉卿
-├─ 🤝 盟友：张居正（隐藏）
-├─ 📚 导师：利玛窦
-├─ ⚔️ 敌对：申时行派系
-└─ 👁️ 监视：东厂
+Protagonist: Li Zhongyong
+├─ 💕 Romantic Interest: Shen Yuqing
+├─ 🤝 Ally: Zhang Juzheng (hidden)
+├─ 📚 Mentor: Matteo Ricci
+├─ ⚔️ Enemy: Shen Shixing's faction
+└─ 👁️ Under Surveillance by: Eastern Depot
 
-派系对立：
-改革派 ←→ 保守派
-东林党 ←→ 阉党
+Faction Opposition:
+Reformists ←→ Conservatives
+Donglin Party ←→ Eunuch Faction
 
-最近变化（第60章）：
-- 沈玉卿：陌生人 → 相互吸引
-- 张居正：未知 → 师承关系
+Recent Changes (Chapter 60):
+- Shen Yuqing: Stranger → Mutual Attraction
+- Zhang Juzheng: Unknown → Mentor-Student Relationship
 ```
 
-## 完成提示 + 下一步
+## Completion Prompt + Next Steps
 
-在聊天中输出：
+Output in chat:
 
 ```
-✅ 关系操作完成（show/update/history/check）
+✅ Relationship operation complete (show/update/history/check)
 ```
 
-建议：
+Recommendations:
 
-- 运行 `/track --check` 做综合一致性检查（称谓/阵营/位置）
-- 对应章节需体现关系变化 → 在 `/write` 中修正或补充
+-   Run `/track --check` for a comprehensive consistency check (titles/factions/locations).
+-   The corresponding chapter needs to reflect the relationship changes → Correct or supplement in `/write`.

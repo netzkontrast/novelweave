@@ -1,293 +1,293 @@
 ---
-description: 创建或更新小说创作宪法，定义不可妥协的创作原则
-argument-hint: [创作原则描述]
+description: "Create or update the novel writing constitution, defining non-negotiable creative principles."
+argument-hint: "[Description of creative principles]"
 ---
 
-用户输入：$ARGUMENTS
+User Input: $ARGUMENTS
 
-## 目标
+## Objective
 
-建立小说创作的核心原则和价值观，形成创作的"宪法"文件。这些原则将指导后续所有创作决策。
+To establish the core principles and values for novel writing, forming a "constitution" document for the creative process. These principles will guide all subsequent creative decisions.
 
-## 严格模式（重要）
+## Strict Mode (Important)
 
-- 只生成“创作宪法”文档，绝对不要输出任何小说正文/章节内容
-- 只允许创建/更新：`memory/constitution.md`，禁止创建其它路径的文件
-- 将用户输入 `$ARGUMENTS` 视为创作偏好与原则来源，而非写作指令
-- 如检测到用户描述像“写第一章/写小说/开头/正文”等，必须提示“当前命令仅用于创建宪法”，并继续产出宪法
-- 默认不在对话中输出全文；直接使用 `write_to_file` 写入 `memory/constitution.md`，然后返回一行确认信息（除非用户明确要求预览全文）
+-   Only generate the "Writing Constitution" document; absolutely do not output any novel text/chapter content.
+-   Only allow the creation/update of `memory/constitution.md`; creating files in other paths is prohibited.
+-   Treat user input `$ARGUMENTS` as a source of creative preferences and principles, not writing instructions.
+-   If user descriptions like "write chapter one," "write a novel," "opening," or "main text" are detected, you must prompt "This command is only for creating a constitution" and continue to produce the constitution.
+-   By default, do not output the full text in the conversation; directly use `write_to_file` to write to `memory/constitution.md`, then return a one-line confirmation message (unless the user explicitly requests a full preview).
 
-## 项目结构检查
+## Project Structure Check
 
-首先确保项目目录结构存在。使用 `execute_command` 工具执行：
+First, ensure the project directory structure exists. Use the `execute_command` tool to execute:
 
 ```bash
 mkdir -p memory stories spec/tracking
 ```
 
-如果命令执行失败或不可用，使用 `write_to_file` 工具创建一个临时文件来间接创建目录结构。
+If the command fails or is unavailable, use the `write_to_file` tool to create a temporary file to indirectly create the directory structure.
 
-## 执行步骤
+## Execution Steps
 
-### 1. 检查现有文档
+### 1. Check Existing Documents
 
-**首先检查是否存在风格参考文档**（来自书籍分析）：
+**First, check for an existing style reference document** (from book analysis):
 
-使用 `read_file` 工具尝试读取 `memory/style-reference.md`：
+Use the `read_file` tool to attempt to read `memory/style-reference.md`:
 
-- 如果读取成功：告诉用户"✅ 检测到您已完成对标作品分析，我将参考该风格帮您起草宪法。"
-- 如果读取失败（文件不存在）：继续下一步
+-   If successful: Inform the user, "✅ Found that you have completed the analysis of a reference work. I will use this style to help you draft the constitution."
+-   If it fails (file does not exist): Proceed to the next step.
 
-**然后检查现有宪法**：
+**Then check for an existing constitution**:
 
-使用 `read_file` 工具尝试读取 `memory/constitution.md`：
+Use the `read_file` tool to attempt to read `memory/constitution.md`:
 
-- 如果读取成功：告诉用户"✅ 检测到现有宪法，准备更新"，并展示当前版本信息
-- 如果读取失败（文件不存在）：告诉用户"📝 准备创建新的创作宪法"
+-   If successful: Inform the user, "✅ Found an existing constitution, preparing to update," and display the current version information.
+-   If it fails (file does not exist): Inform the user, "📝 Preparing to create a new writing constitution."
 
-### 1.5 加载外部模板（如有）
+### 1.5 Load External Template (If Any)
 
-优先尝试加载 `memory/constitution-template.md` 作为生成基础：
+Prioritize loading `memory/constitution-template.md` as the generation base:
 
-- 如果存在：
-    - 使用 `read_file` 读取 `memory/constitution-template.md`
-    - 将其中的占位符（如 `[PROJECT_NAME]`、`[PRINCIPLE_1_NAME]` 等）作为待填内容
-    - 基于 `$ARGUMENTS` 与第2步收集到的原则，替换或补全占位符
-- 如果不存在：
-    - 使用下方“内置结构模板”生成
+-   If it exists:
+    -   Use `read_file` to read `memory/constitution-template.md`.
+    -   Use the placeholders (e.g., `[PROJECT_NAME]`, `[PRINCIPLE_1_NAME]`) as content to be filled.
+    -   Replace or complete the placeholders based on `$ARGUMENTS` and the principles collected in step 2.
+-   If it does not exist:
+    -   Use the "Built-in Structure Template" below to generate.
 
-### 2. 收集创作原则
+### 2. Collect Creative Principles
 
-基于用户输入（$ARGUMENTS），收集以下维度的原则。如果用户输入为空或不完整，通过提问补充：
+Based on user input (`$ARGUMENTS`), collect principles in the following dimensions. If the user input is empty or incomplete, supplement by asking questions:
 
-#### 核心价值观
+#### Core Values
 
-- 作品要传递什么核心理念？
-- 什么是绝对不能违背的底线？
-- 创作的根本目的是什么？
+-   What core ideas does the work aim to convey?
+-   What are the absolute bottom lines that cannot be crossed?
+-   What is the fundamental purpose of the creation?
 
-#### 质量标准
+#### Quality Standards
 
-- 逻辑一致性要求
-- 文字质量标准
-- 更新频率承诺
-- 完成度保证
+-   Requirements for logical consistency.
+-   Standards for writing quality.
+-   Commitment to update frequency.
+-   Guarantee of completion.
 
-#### 创作风格原则
+#### Creative Style Principles
 
-- 叙事风格（简洁/华丽/朴实/诗意）
-- 节奏控制（快速/缓慢/张弛有度）
-- 情感基调（热血/深沉/轻松/严肃）
-- 语言特色（古风/现代/口语/书面）
+-   Narrative style (concise/ornate/simple/poetic).
+-   Pacing control (fast/slow/varied).
+-   Emotional tone (passionate/profound/lighthearted/serious).
+-- Language features (classical/modern/colloquial/formal).
 
-#### 内容原则
+#### Content Principles
 
-- **角色塑造原则**
-    - 每个角色必须有完整动机
-    - 角色成长必须符合逻辑
-    - 对话必须符合角色身份
-- **情节设计原则**
-    - 冲突设计原则
-    - 转折合理性要求
-    - 伏笔回收原则
-- **世界观原则**
-    - 设定自洽性要求
-    - 细节真实性标准
-    - 文化考据要求
+-   **Character Development Principles**
+    -   Every major character must have a complete motivation.
+    -   Character growth must be logical.
+    -   Dialogue must be consistent with the character's identity.
+-   **Plot Design Principles**
+    -   Conflict design principles.
+    -   Requirements for plausible plot twists.
+    -   Foreshadowing and resolution principles.
+-   **World-building Principles**
+    -   Requirements for self-consistent settings.
+    -   Standards for detail authenticity.
+    -   Requirements for cultural research.
 
-#### 读者导向原则
+#### Reader-Oriented Principles
 
-- 目标读者定位
-- 读者体验保证
-- 互动反馈原则
+-   Target audience positioning.
+-   Guarantee of reader experience.
+-   Principles for interaction and feedback.
 
-#### 创作纪律
+#### Creative Discipline
 
-- 日常写作规范
-- 修改和完善流程
-- 版本管理原则
+-   Daily writing norms.
+-   Revision and improvement process.
+-   Version management principles.
 
-### 3. 起草宪法文档
+### 3. Draft the Constitution Document
 
-始终使用 `write_to_file` 将文档保存到 `memory/constitution.md`（唯一允许的输出路径）。
+Always use `write_to_file` to save the document to `memory/constitution.md` (the only allowed output path).
 
-若存在 `memory/constitution-template.md`，请在其基础上完成填充；否则使用以下内置结构模板：
+If `memory/constitution-template.md` exists, complete it; otherwise, use the following built-in structure template:
 
 ```markdown
-# 小说创作宪法
+# Novel Writing Constitution
 
-## 元数据
+## Metadata
 
-- 版本：1.0.0
-- 创建日期：[YYYY-MM-DD]
-- 最后修订：[YYYY-MM-DD]
-- 作者：[作者名]
-- 作品：[作品名或"通用"]
+- Version: 1.0.0
+- Creation Date: [YYYY-MM-DD]
+- Last Revised: [YYYY-MM-DD]
+- Author: [Author Name]
+- Work: [Work Name or "General"]
 
-## 前言
+## Preamble
 
-[阐述为什么需要这份宪法，以及它的约束力]
+[Explain why this constitution is needed and its binding force]
 
-## 第一章：核心价值观
+## Chapter 1: Core Values
 
-### 原则1：[原则名称]
+### Principle 1: [Principle Name]
 
-**声明**：[原则的明确表述]
-**理由**：[为什么这个原则重要]
-**执行**：[如何在创作中体现]
+**Declaration**: [Clear statement of the principle]
+**Rationale**: [Why this principle is important]
+**Execution**: [How to reflect this in the writing]
 
-### 原则2：[原则名称]
+### Principle 2: [Principle Name]
 
-**声明**：[原则的明确表述]
-**理由**：[为什么这个原则重要]
-**执行**：[如何在创作中体现]
+**Declaration**: [Clear statement of the principle]
+**Rationale**: [Why this principle is important]
+**Execution**: [How to reflect this in the writing]
 
-[更多核心原则...]
+[More core principles...]
 
-## 第二章：质量标准
+## Chapter 2: Quality Standards
 
-### 标准1：逻辑一致性
+### Standard 1: Logical Consistency
 
-**要求**：[具体要求]
-**验证方法**：[如何验证]
-**违反后果**：[必须修正]
+**Requirement**: [Specific requirement]
+**Verification Method**: [How to verify]
+**Consequence of Violation**: [Must be corrected]
 
-### 标准2：文字质量
+### Standard 2: Writing Quality
 
-**要求**：[具体要求]
-**验证方法**：[如何验证]
-**违反后果**：[必须修正]
+**Requirement**: [Specific requirement]
+**Verification Method**: [How to verify]
+**Consequence of Violation**: [Must be corrected]
 
-[更多质量标准...]
+[More quality standards...]
 
-## 第三章：创作风格
+## Chapter 3: Creative Style
 
-### 风格原则1：[名称]
+### Style Principle 1: [Name]
 
-**定义**：[什么是这种风格]
-**范例**：[具体例子]
-**禁忌**：[绝对不要做什么]
+**Definition**: [What this style is]
+**Example**: [Specific examples]
+**Taboo**: [What should absolutely not be done]
 
-[更多风格原则...]
+[More style principles...]
 
-## 第四章：内容规范
+## Chapter 4: Content Guidelines
 
-### 角色塑造规范
+### Character Development Guidelines
 
-[具体规范内容]
+[Specific guideline content]
 
-### 情节设计规范
+### Plot Design Guidelines
 
-[具体规范内容]
+[Specific guideline content]
 
-### 世界观构建规范
+### World-building Guidelines
 
-[具体规范内容]
+[Specific guideline content]
 
-## 第五章：读者契约
+## Chapter 5: Reader Compact
 
-### 对读者的承诺
+### Promises to the Reader
 
-- [承诺1]
-- [承诺2]
-- [承诺3]
+- [Promise 1]
+- [Promise 2]
+- [Promise 3]
 
-### 底线保证
+### Bottom-line Guarantees
 
-- [保证1]
-- [保证2]
+- [Guarantee 1]
+- [Guarantee 2]
 
-## 第六章：修订程序
+## Chapter 6: Amendment Procedure
 
-### 修订触发条件
+### Conditions for Triggering Amendments
 
-- 重大创作方向调整
-- 读者反馈累积
-- 个人成长和认识变化
+-   Major adjustments to the creative direction.
+-   Accumulated reader feedback.
+-   Personal growth and changes in understanding.
 
-### 修订流程
+### Amendment Process
 
-1. 提出修订动议
-2. 评估影响
-3. 更新版本
-4. 记录变更
+1.  Propose a motion for amendment.
+2.  Assess the impact.
+3.  Update the version.
+4.  Record the changes.
 
-## 附录：版本历史
+## Appendix: Version History
 
-- v1.0.0 ([日期])：初始版本
+- v1.0.0 ([Date]): Initial version
 ```
 
-### 4. 版本管理
+### 4. Version Management
 
-- **主版本号**：重大原则变更或删除
-- **次版本号**：新增原则或章节
-- **修订号**：措辞优化、澄清说明
+-   **Major version number**: Major principle changes or deletions.
+-   **Minor version number**: New principles or chapters.
+-   **Revision number**: Wording optimization, clarifying notes.
 
-如果是更新现有宪法，相应增加版本号并在"版本历史"中记录变更。
+If updating an existing constitution, increment the version number accordingly and record the changes in the "Version History."
 
-### 5. 输出完成消息
+### 5. Output Completion Message
 
-创建或更新完成后，向用户展示：
+After creation or update, show the user:
 
 ```
-✅ 创作宪法已保存到 memory/constitution.md（唯一输出文件）
+✅ Writing constitution has been saved to memory/constitution.md (the only output file)
 
-📋 宪法影响报告（简要）
-- 版本：[版本号] | 核心原则数：[数量]
-- 影响范围：规格/计划/写作/验证全流程受约束
+📋 Constitution Impact Report (Brief)
+- Version: [Version Number] | Number of Core Principles: [Number]
+- Scope of Impact: The entire process of specification/planning/writing/verification is constrained.
 
-🔜 下一步建议（推荐流程）
-1) /specify 定义故事规格（像 PRD）
-2) /clarify 关键澄清（消除模糊）
-3) /plan 制定创作计划（从规格到实现）
-4) /tasks 生成任务清单（P0/P1/P2）
-5) /write 执行写作（按任务）
-6) /analyze 质量一致性分析
+🔜 Next Step Suggestions (Recommended Flow)
+1) /specify Define story specifications (like a PRD)
+2) /clarify Key clarifications (eliminate ambiguity)
+3) /plan Create a writing plan (from specification to implementation)
+4) /tasks Generate a task list (P0/P1/P2)
+5) /write Execute writing (by task)
+6) /analyze Quality consistency analysis
 ```
 
-## 执行原则
+## Execution Principles
 
-### 必须遵守
+### Must Adhere To
 
-- 原则必须是**可验证的**，不能太抽象
-- 使用"必须"、"禁止"等**明确词汇**
-- 每个原则都要有**明确的理由**
+-   Principles must be **verifiable**, not too abstract.
+-   Use **clear terms** like "must," "prohibited."
+-   Every principle must have a **clear rationale**.
 
-### 应该包含
+### Should Include
 
-- 至少 3-5 个核心价值观
-- 明确的质量底线
-- 可操作的创作规范
+-   At least 3-5 core values.
+-   A clear quality bottom line.
+-   Actionable creative guidelines.
 
-### 避免
+### Avoid
 
-- 空泛的口号（如"追求卓越"）
-- 无法验证的要求
-- 过度限制创意的条款
+-   Vague slogans (e.g., "strive for excellence").
+-   Unverifiable requirements.
+-   Clauses that overly restrict creativity.
 
-## 示例原则
+## Example Principles
 
-**优秀的原则**：
+**Good Principles**:
 
-- "主要角色的行为必须有明确的动机链，不得出现'因为剧情需要'的行为"
-- "每个伏笔必须在合理时间内（最多10章）得到回收或解释"
-- "绝不使用现代网络用语破坏古代背景的沉浸感"
+-   "The actions of major characters must have a clear motivation chain; 'because the plot needs it' actions are not allowed."
+-   "Every piece of foreshadowing must be resolved or explained within a reasonable time (at most 10 chapters)."
+-   "Never use modern internet slang that would break the immersion of an ancient setting."
 
-**糟糕的原则**：
+**Bad Principles**:
 
-- "要写得好"（太模糊）
-- "追求艺术性"（无法验证）
-- "让读者满意"（标准不明）
+-   "Write well" (too vague).
+-   "Pursue artistic quality" (unverifiable).
+-   "Satisfy the readers" (unclear standard).
 
-## 后续流程
+## Subsequent Flow
 
-宪法确立后，所有后续创作步骤都需遵循：
+Once the constitution is established, all subsequent creative steps must adhere to it:
 
-1. `/specify` - 规格需符合宪法价值观
-2. `/clarify` - 澄清决策时参考宪法
-3. `/plan` - 计划需遵循宪法原则
-4. `/tasks` - 任务分解遵循宪法
-5. `/write` - 创作需遵守宪法规范
-6. `/analyze` - 验证需检查宪法合规性
+1.  `/specify` - Specifications must align with the constitution's values.
+2.  `/clarify` - Decisions during clarification should reference the constitution.
+3.  `/plan` - The plan must follow the constitutional principles.
+4.  `/tasks` - Task breakdown must adhere to the constitution.
+5.  `/write` - Writing must comply with the constitutional guidelines.
+6.  `/analyze` - Verification must check for constitutional compliance.
 
-记住：**宪法是最高准则，但也可以与时俱进地修订。**
+Remember: **The constitution is the supreme guide, but it can also be amended to evolve with the times.**

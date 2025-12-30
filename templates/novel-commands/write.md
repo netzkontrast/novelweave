@@ -1,483 +1,483 @@
 ---
-description: 基于任务清单执行章节写作，自动加载上下文和验证规则
-argument-hint: [章节编号或任务ID]
+description: "Execute chapter writing based on the task list, automatically loading context and validation rules."
+argument-hint: "[Chapter number or task ID]"
 ---
 
-⚠️ **执行提醒**：以下是你需要执行的任务指令，不是要显示给用户的内容。你需要：
+⚠️ **Execution Reminder**: The following are task instructions for you to execute, not content to be displayed to the user. You need to:
 
-1. 读取任务清单和所有参考文档
-2. 生成实际的章节内容（2000-4000字）
-3. 遵循反AI检测写作规范
-4. 保存章节到 content/ 目录
-5. 在聊天中只输出完成报告
+1.  Read the task list and all reference documents.
+2.  Generate the actual chapter content (2000-4000 words).
+3.  Follow the anti-AI detection writing guidelines.
+4.  Save the chapter to the `content/` directory.
+5.  Only output a completion report in the chat.
 
-基于七步方法论流程执行章节写作。
+Execute chapter writing based on the seven-step methodology.
 
-用户输入：$ARGUMENTS
+User Input: $ARGUMENTS
 
-## 项目结构检查
+## Project Structure Check
 
-首先确保项目目录结构存在。使用 `execute_command` 工具执行：
+First, ensure the project directory structure exists. Use the `execute_command` tool to execute:
 
 ```bash
 mkdir -p memory stories spec/tracking
 ```
 
-## 前置检查
+## Prerequisite Check
 
-使用 `execute_command` 或 `list_files` 工具检查创作状态：
+Use the `execute_command` or `list_files` tool to check the creation status:
 
 ```bash
 find stories -name "specification.md" -o -name "creative-plan.md" -o -name "tasks.md"
 ```
 
-### 查询协议（必读顺序）
+### Query Protocol (Mandatory Reading Order)
 
-⚠️ **重要**：请严格按照以下顺序查询文档，确保上下文完整且优先级正确。
+⚠️ **Important**: Please strictly follow the order below to query documents to ensure complete context and correct priority.
 
-**查询顺序**：
+**Query Order**:
 
-1. **先查（最高优先级）**：
-    - `memory/constitution.md`（创作宪法 - 最高原则）
-    - `memory/style-reference.md`（风格参考 - 如果通过 `/book-internalize` 生成）
+1.  **Query First (Highest Priority)**:
+    -   `memory/constitution.md` (Writing Constitution - The highest principle)
+    -   `memory/style-reference.md` (Style Reference - if generated via `/book-internalize`)
 
-2. **再查（规格和计划）**：
-    - `stories/*/specification.md`（故事规格）
-    - `stories/*/creative-plan.md`（创作计划）
-    - `stories/*/tasks.md`（当前任务）
+2.  **Then Query (Specifications and Plans)**:
+    -   `stories/*/specification.md` (Story Specification)
+    -   `stories/*/creative-plan.md` (Creative Plan)
+    -   `stories/*/tasks.md` (Current Task)
 
-3. **再查（状态和数据）**：
-    - `spec/tracking/character-state.json`（角色状态）
-    - `spec/tracking/relationships.json`（关系网络）
-    - `spec/tracking/plot-tracker.json`（情节追踪 - 如有）
-    - `spec/tracking/validation-rules.json`（验证规则 - 如有）
+3.  **Then Query (Status and Data)**:
+    -   `spec/tracking/character-state.json` (Character Status)
+    -   `spec/tracking/relationships.json` (Relationship Network)
+    -   `spec/tracking/plot-tracker.json` (Plot Tracker - if available)
+    -   `spec/tracking/validation-rules.json` (Validation Rules - if available)
 
-4. **再查（知识库）**：
-    - `spec/knowledge/` 相关文件（世界观、角色档案等）
-    - `stories/*/content/`（前文内容 - 了解前情）
+4.  **Then Query (Knowledge Base)**:
+    -   `spec/knowledge/` related files (world-building, character profiles, etc.)
+    -   `stories/*/content/` (Previous content - to understand the context)
 
-5. **再查（写作规范 - 关键！）**：
+5.  **Then Query (Writing Guidelines - CRITICAL!)**:
 
-    ⚠️ **重要**：以下文件包含核心写作规范，**必须**使用 `read_file` 工具读取。
+    ⚠️ **Important**: The following files contain core writing guidelines and **must** be read using the `read_file` tool.
 
-    **首先尝试从用户项目读取**（如果用户已自定义）：
-    - `memory/personal-voice.md`（个人语料）
-    - `spec/knowledge/natural-expression.md`（自然化表达）
-    - `spec/knowledge/punctuation-personality.md`（标点个性化）
-    - `spec/knowledge/detail-formulas.md`（具象化公式）
-    - `spec/knowledge/anti-ai-advanced.md`（高级反AI检测）
+    **First, try to read from the user's project** (if the user has customized them):
+    -   `memory/personal-voice.md` (Personal Corpus)
+    -   `spec/knowledge/natural-expression.md` (Natural Expression)
+    -   `spec/knowledge/punctuation-personality.md` (Punctuation Personality)
+    -   `spec/knowledge/detail-formulas.md` (Concretization Formulas)
+    -   `spec/knowledge/anti-ai-advanced.md` (Advanced Anti-AI Detection)
 
-    **如果用户项目中不存在，则从扩展内置知识库读取**（默认规范）：
+    **If they don't exist in the user's project, read from the extension's built-in knowledge base** (default guidelines):
 
-    使用 `read_file` 工具依次读取以下文件（使用完整路径）：
-    1. **反AI检测规范**（必读）：
-        - 扩展路径：`templates/novel-knowledge/anti-ai-advanced.md`
-        - 或用户项目：`spec/knowledge/anti-ai-advanced.md`
-    2. **自然化表达规则**（必读）：
-        - 扩展路径：`templates/novel-knowledge/natural-expression.md`
-        - 或用户项目：`spec/knowledge/natural-expression.md`
-    3. **具象化公式**（必读）：
-        - 扩展路径：`templates/novel-knowledge/detail-formulas.md`
-        - 或用户项目：`spec/knowledge/detail-formulas.md`
-    4. **标点个性化**（推荐）：
-        - 扩展路径：`templates/novel-knowledge/punctuation-personality.md`
-        - 或用户项目：`spec/knowledge/punctuation-personality.md`
-    5. **个人风格语料**（如有）：
-        - 用户项目：`memory/personal-voice.md`
+    Use the `read_file` tool to read the following files in order (using the full path):
+    1.  **Anti-AI Detection Guidelines** (Mandatory):
+        -   Extension path: `templates/novel-knowledge/anti-ai-advanced.md`
+        -   Or user project: `spec/knowledge/anti-ai-advanced.md`
+    2.  **Natural Expression Rules** (Mandatory):
+        -   Extension path: `templates/novel-knowledge/natural-expression.md`
+        -   Or user project: `spec/knowledge/natural-expression.md`
+    3.  **Concretization Formulas** (Mandatory):
+        -   Extension path: `templates/novel-knowledge/detail-formulas.md`
+        -   Or user project: `spec/knowledge/detail-formulas.md`
+    4.  **Punctuation Personality** (Recommended):
+        -   Extension path: `templates/novel-knowledge/punctuation-personality.md`
+        -   Or user project: `spec/knowledge/punctuation-personality.md`
+    5.  **Personal Style Corpus** (If available):
+        -   User project: `memory/personal-voice.md`
 
-6. **条件查询（前三章专用 - 黄金开篇）**：
+6.  **Conditional Query (For the first three chapters only - Golden Opening)**:
 
-    ⚠️ **如果章节编号 ≤ 3 或总字数 < 10000字，必须额外读取**：
+    ⚠️ **If the chapter number is ≤ 3 or the total word count is < 10,000, you must additionally read**:
 
-    使用 `read_file` 工具读取：
-    - 扩展路径：`templates/novel-presets/golden-opening.md`
-    - 或用户项目：`spec/presets/golden-opening.md`
+    Use the `read_file` tool to read:
+    -   Extension path: `templates/novel-presets/golden-opening.md`
+    -   Or user project: `spec/presets/golden-opening.md`
 
-    **严格遵循黄金开篇的五大法则**！
+    **Strictly follow the five golden rules of the opening**!
 
 <!-- PLUGIN_HOOK: genre-knowledge-write -->
-<!-- 插件增强区：风格应用
-     如果你安装了 genre-knowledge 插件，请在此处插入风格应用增强提示词
-     参考：plugins/genre-knowledge/README.md 的"2.3 增强 /write 命令"章节
+<!-- Plugin Enhancement Area: Style Application
+     If you have the genre-knowledge plugin installed, insert the style application enhancement prompt here.
+     Reference: "2.3 Enhance /write command" section in plugins/genre-knowledge/README.md
 -->
 
-## 写作执行流程
+## Writing Execution Flow
 
-### 1. 选择写作任务
+### 1. Select Writing Task
 
-从 `tasks.md` 中选择状态为 `pending` 的写作任务，标记为 `in_progress`。
+Select a writing task with the status `pending` from `tasks.md` and mark it as `in_progress`.
 
-### 2. 验证前置条件
+### 2. Validate Prerequisites
 
-- 检查相关依赖任务是否完成
-- 验证必要的设定是否就绪
-- 确认前序章节是否完成
+-   Check if related dependent tasks are complete.
+-   Verify that necessary settings are ready.
+-   Confirm that preceding chapters are complete.
 
-### 3. 写作前提醒
+### 3. Pre-writing Reminders
 
-**基于宪法原则提醒**：
+**Reminders based on Constitutional Principles**:
 
-- 核心价值观要点
-- 质量标准要求
-- 风格一致性准则
+-   Key points of core values.
+-   Quality standard requirements.
+-   Style consistency guidelines.
 
-**基于规格要求提醒**：
+**Reminders based on Specification Requirements**:
 
-- P0 必须包含的元素
-- 目标读者特征
-- 内容红线提醒
+-   P0 must-include elements.
+-   Target audience characteristics.
+-   Content red line reminders.
 
-**分段格式规范（重要）**：
+**Paragraph Formatting Guidelines (Important)**:
 
-- ⛔ **禁止使用**："一"、"二"、"三"等数字标记分段
-- ✅ **使用方式**：场景转换时用两个空行（一个空白行）分隔
-- 📖 **原因**：数字标记过于生硬，破坏阅读沉浸感，不符合网络小说习惯
+-   ⛔ **Do not use**: "One," "Two," "Three," etc., to mark paragraphs.
+-   ✅ **How to use**: Use two empty lines (one blank line) to separate scenes.
+-   📖 **Reason**: Numbered markers are too rigid, break reading immersion, and do not conform to web novel conventions.
 
-**反AI检测写作规范（基于腾讯朱雀标准）**：
+**Anti-AI Detection Writing Guidelines (Based on Tencent's Zhuque standard)**:
 
-⚠️ **重要背景**：AI编程工具使用低温度参数，但传统"补偿方法"（强制堆砌细节）会导致过度描写，反而增加AI特征。以下规范基于实测通过标准（AI浓度0%）。
+⚠️ **Important Background**: AI programming tools use low-temperature parameters, but traditional "compensation methods" (forcing the piling up of details) lead to excessive description, which in turn increases AI characteristics. The following guidelines are based on standards that have passed tests with 0% AI concentration.
 
-### 📏 段落结构规范（关键）⭐
+### 📏 Paragraph Structure Guidelines (Key) ⭐
 
-**单句成段比例**：
+**Single-Sentence Paragraph Ratio**:
 
-- ✅ **30%-50%的段落应为单句成段**
-- ✅ **每段控制在50-100字**
-- ✅ **重点信息独立成段**
+-   ✅ **30%-50% of paragraphs should be single-sentence paragraphs.**
+-   ✅ **Keep each paragraph between 50-100 words.**
+-   ✅ **Place key information in a separate paragraph.**
 
-**示例对比**：
+**Example Comparison**:
 
-❌ **AI化写法**（过度描写，95% AI浓度）:
+❌ **AI-style Writing** (excessive description, 95% AI concentration):
 
-> 房间里弥漫着霉味，唯一的光源是窗帘缝隙透进的灰白月光。他摸索着墙壁前行，指尖触到冰冷的石壁，直到膝盖撞上桌角——一张摇摇欲坠的木桌，上面堆满灰尘。
+> The room was filled with a musty smell, the only light source being the grayish-white moonlight filtering through the gap in the curtains. He fumbled his way forward along the wall, his fingertips touching the cold stone, until his knee hit the corner of a table—a rickety wooden table covered in dust.
 
-✅ **自然写法**（简洁克制，0% AI浓度）:
+✅ **Natural Writing** (concise and restrained, 0% AI concentration):
 
-> 永嘉之乱后，中原被异族占领。
+> After the Yongjia Disturbance, the central plains were occupied by foreign tribes.
 >
-> 汉地士族百姓除了少数不愿离开家乡的，大都南下渡江。
+> Most of the Han gentry and commoners, except for a few who were unwilling to leave their homes, crossed the river to the south.
 >
-> 王谯这些年招揽了百十流民为自己种地。
+> Over the years, Wang Qiao had recruited a hundred or so refugees to farm his land.
 
-### 🚫 禁止事项清单（反AI腔）
+### 🚫 Prohibited Items List (Anti-AI Phrasing)
 
-1. **禁止无意义堆砌**
-    - ❌ 不要强行凑够"3种感官"
-    - ❌ 不要列举式情绪描写
-    - ✅ 一个准确的细节胜过三个堆砌
+1.  **Prohibit meaningless piling up**
+    -   ❌ Don't force "3 sensory details."
+    -   ❌ Don't list emotions.
+    -   ✅ One accurate detail is better than three piled-up ones.
 
-2. **禁止华丽比喻**
-    - ❌ "摇摇欲坠的木桌"、"空气凝固"
-    - ✅ 直接描述："一张旧木桌"、"沉默"
+2.  **Prohibit ornate metaphors**
+    -   ❌ "a rickety wooden table," "the air froze."
+    -   ✅ Direct description: "an old wooden table," "silence."
 
-3. **禁止过度戏剧化**
-    - ❌ "话音未落，她已转身离开。他冲上去抓住..."
-    - ✅ 简洁处理："她转身走了。他追上去。"
+3.  **Prohibit over-dramatization**
+    -   ❌ "Before she finished speaking, she had already turned to leave. He rushed forward and grabbed..."
+    -   ✅ Simple handling: "She turned and left. He chased after her."
 
-4. **禁止说明式对话**
-    - ❌ "我很生气，因为你昨天没来"
-    - ✅ "你昨天去哪了？""……不关你的事。"
+4.  **Prohibit explanatory dialogue**
+    -   ❌ "I'm angry because you didn't come yesterday."
+    -   ✅ "Where were you yesterday?" "...None of your business."
 
-5. **禁止直白心理描写**
-    - ❌ "他心中暗想，这事不简单"
-    - ✅ 通过行为暗示："他眉头一紧。"
+5.  **Prohibit direct psychological description**
+    -   ❌ "He thought to himself, this is not simple."
+    -   ✅ Imply through action: "His brow furrowed."
 
-### ✅ 自然化写作原则
+### ✅ Natural Writing Principles
 
-**1. 历史白描法**（古代背景适用）
+**1. Historical Plain Description (for ancient settings)**
 
-- 陈述事实，不加修饰
-- 示例："这些年来，王谯招揽了百十流民为自己种地。"
+-   State facts without embellishment.
+-   Example: "Over the years, Wang Qiao had recruited a hundred or so refugees to farm his land."
 
-**2. 口语化处理**（对话）
+**2. Colloquial Handling (for dialogue)**
 
-- 加入语病、停顿、重复
-- 示例："大都分人都南下"（而非"大部分人"）
+-   Include grammatical errors, pauses, repetitions.
+-   Example: "Mosta the people went south" (instead of "Most of the people").
 
-**3. 短句节奏**（叙事）
+**3. Short Sentence Rhythm (for narrative)**
 
-- 单句15-25字
-- 关键信息独立成段
+-   15-25 words per sentence.
+-   Key information in a separate paragraph.
 
-**4. 克制描写**（场景）
+**4. Restrained Description (for scenes)**
 
-- 一个场景1-2个细节即可
-- ❌ 不写："房间里弥漫着霉味，墙壁冰冷，光线昏暗..."
-- ✅ 而写："房间很暗。"（足够）
+-   1-2 details per scene are enough.
+-   ❌ Don't write: "The room was filled with a musty smell, the walls were cold, the light was dim..."
+-   ✅ Instead write: "The room was dark." (Sufficient).
 
-### 📊 自检标准
+### 📊 Self-Check Standard
 
-写完一段后检查：
+After writing a paragraph, check:
 
-- [ ] 单句成段占比是否在30%-50%？
-- [ ] 每段字数是否在50-100字？
-- [ ] 是否有"唯一的"、"直到"、"弥漫"等AI高频词？
-- [ ] 是否强行堆砌感官细节？
-- [ ] 对话是否过于完整（缺少停顿、语病）？
-- [ ] 比喻是否过于华丽？
+-   [ ] Is the single-sentence paragraph ratio between 30%-50%?
+-   [ ] Is the word count of each paragraph between 50-100 words?
+-   [ ] Are there high-frequency AI words like "only," "until," "filled with"?
+-   [ ] Are sensory details being forced?
+-   [ ] Is the dialogue too perfect (lacking pauses, errors)?
+-   [ ] Are the metaphors too ornate?
 
-**AI高频词黑名单**：
+**High-Frequency AI Word Blacklist**:
 
-- "唯一的"、"直到"、"弥漫着"、"摇摇欲坠"
-- "空气凝固"、"话音未落"、"猛地"
-- "不禁"、"顿时"、"心中暗想"
-- "皱起眉头"、"叹了口气"
+-   "only," "until," "filled with," "rickety"
+-   "the air froze," "before the words were out," "suddenly"
+-   "couldn't help but," "at once," "thought to himself"
+-   "frowned," "sighed"
 
-**替换策略**：
-| ❌ AI词汇 | ✅ 自然替换 |
-|---------|----------|
-| 弥漫着霉味 | 有股霉味 |
-| 唯一的光源 | 只有一点光 |
-| 摇摇欲坠的木桌 | 一张旧木桌 |
-| 他心中暗想 | 他想 / 删除 |
-| 话音未落 | 他话没说完 / 删除 |
+**Replacement Strategy**:
+| ❌ AI Word | ✅ Natural Replacement |
+|---|---|
+| filled with a musty smell | had a musty smell |
+| the only light source | there was only a little light |
+| a rickety wooden table | an old wooden table |
+| he thought to himself | he thought / delete |
+| before the words were out | before he finished speaking / delete |
 
-### 4. 实时辅助模式（可选）
+### 4. Real-time Assistance Mode (Optional)
 
-**如果用户在写作过程中遇到困难**，比如说：
+**If the user encounters difficulties during the writing process**, for example:
 
-- "帮我想一下主角该怎么办"
-- "接下来如何发展情节？"
-- "给我几个选项"
+-   "Help me think about what the protagonist should do."
+-   "How should the plot develop next?"
+-   "Give me some options."
 
-**你可以主动提供 2-3 个行动选项**，例如：
+**You can proactively provide 2-3 action options**, for example:
 
-> **情节发展建议**：
+> **Plot Development Suggestion**:
 >
-> **选项A（主动型）**：主角直接出手，利用金手指碾压对手
+> **Option A (Proactive)**: The protagonist takes direct action, using their golden finger to crush the opponent.
 >
-> - 优点：爽点直接，读者满足感强
-> - 风险：可能显得主角过于强大
+> -   Pros: Direct satisfaction, strong reader fulfillment.
+> -   Risks: Might make the protagonist seem too powerful.
 >
-> **选项B（策略型）**：主角隐藏实力，智取对手
+> **Option B (Strategic)**: The protagonist hides their strength and outsmarts the opponent.
 >
-> - 优点：展现主角智慧，增加悬念
-> - 风险：节奏可能稍慢
+-   Pros: Showcases the protagonist's intelligence, adds suspense.
+-   Risks: The pacing might be slightly slower.
 >
-> **选项C（意外型）**：引入新的变数，打断当前冲突
+> **Option C (Unexpected)**: Introduce a new variable that interrupts the current conflict.
 >
-> - 优点：增加复杂度，引出新线索
-> - 风险：可能让读者感觉被打断
+> -   Pros: Adds complexity, introduces new clues.
+> -   Risks: Might feel like an interruption to the reader.
 
-**然后根据用户选择**，继续创作内容。
+**Then, based on the user's choice**, continue creating the content.
 
-⚠️ **注意**：这是辅助模式，不要主动提供选项，除非用户明确请求帮助。
+⚠️ **Note**: This is an assistance mode. Do not proactively provide options unless the user explicitly asks for help.
 
 ---
 
-### 5. 根据计划创作内容：
+### 5. Create Content According to the Plan:
 
-- **开场**：吸引读者，承接前文
-- **发展**：推进情节，深化人物
-- **转折**：制造冲突或悬念
-- **收尾**：适当收束，引出下文
+-   **Opening**: Attract the reader, connect with the previous text.
+-   **Development**: Advance the plot, deepen the characters.
+-   **Turning Point**: Create conflict or suspense.
+-   **Closing**: Conclude appropriately, lead into the next section.
 
-### 6. 质量自检
+### 6. Quality Self-Check
 
-**宪法合规检查**：
+**Constitution Compliance Check**:
 
-- 是否符合核心价值观
-- 是否达到质量标准
-- 是否保持风格一致
+-   Does it align with core values?
+-   Does it meet quality standards?
+-   Does it maintain style consistency?
 
-**规格符合检查**：
+**Specification Compliance Check**:
 
-- 是否包含必要元素
-- 是否符合目标定位
-- 是否遵守约束条件
+-   Does it include necessary elements?
+-   Does it fit the target positioning?
+-   Does it adhere to constraints?
 
-**计划执行检查**：
+**Plan Execution Check**:
 
-- 是否按照章节架构
-- 是否符合节奏设计
-- 是否达到字数要求
+-   Does it follow the chapter architecture?
+-   Does it meet the pacing design?
+-   Does it meet the word count requirement?
 
-**格式规范检查**：
+**Formatting Guidelines Check**:
 
-- ⚠️ 确认未使用"一"、"二"、"三"等数字标记分段
-- ✅ 场景转换使用两个空行（一个空白行）
-- ✅ 保持段落间距自然流畅
+-   ⚠️ Confirm that numbers like "One," "Two," "Three" are not used to mark paragraphs.
+-   ✅ Use two empty lines (one blank line) for scene transitions.
+-   ✅ Maintain natural paragraph spacing.
 
-### 📊 具象化检查清单（去AI味关键）⭐
+### 📊 Concretization Checklist (Key to de-AI-ing) ⭐
 
-写完一段后,主动识别并替换抽象表达:
+After writing a paragraph, proactively identify and replace abstract expressions:
 
-#### 🔍 识别抽象表达
+#### 🔍 Identify Abstract Expressions
 
-**时间抽象** ❌ → **具体化** ✅
+**Time Abstraction** ❌ → **Concretization** ✅
 
-- "最近" → "上周三下午"
-- "很久以前" → "三年前的秋天"
-- "不久前" → "昨天早上八点"
-- "过了很久" → "等了整整两个小时"
+-   "Recently" → "Last Wednesday afternoon"
+-   "A long time ago" → "Three autumns ago"
+-   "Not long ago" → "Yesterday at 8 AM"
+-   "After a long time" → "Waited for a full two hours"
 
-**人物抽象** ❌ → **具体化** ✅
+**Character Abstraction** ❌ → **Concretization** ✅
 
-- "很多人" → "我身边至少有5个朋友"
-- "有人说" → "李叔告诉我" / "隔壁老王提起过"
-- "大家都知道" → "村里的老人都说"
-- "据说" → "听王叔私下说过"
+-   "Many people" → "At least 5 of my friends"
+-   "Someone said" → "Uncle Li told me" / "Old Wang next door mentioned"
+-   "Everyone knows" → "The old folks in the village all say"
+-   "It is said" → "Heard from Uncle Wang in private"
 
-**数量抽象** ❌ → **具体化** ✅
+**Quantity Abstraction** ❌ → **Concretization** ✅
 
-- "效果很好" → "这次比上次多收了三石粮" / "客人比平时多了一倍"
-- "很贵" → "一顿饭花了三百块"
-- "很远" → "开车要两小时"
-- "很多" → "至少有二十个"
+-   "Good results" → "Harvested three more stones of grain than last time" / "Twice as many customers as usual"
+-   "Very expensive" → "A meal cost three hundred yuan"
+-   "Very far" → "A two-hour drive"
+-   "A lot" → "At least twenty"
 
-**场景抽象** ❌ → **具体化** ✅
+**Scene Abstraction** ❌ → **Concretization** ✅
 
-- "房间很乱" → "地上堆着三天没洗的衣服"
-- "天气很冷" → "呼出的气都能看见白雾"
-- "很累" → "走了整整五个小时山路"
-- "气氛紧张" → "没人说话,只听见时钟滴答声"
+-   "The room was messy" → "A pile of unwashed clothes from three days ago was on the floor"
+-   "The weather was cold" → "You could see your breath"
+-   "Very tired" → "Walked for five full hours on a mountain path"
+-   "The atmosphere was tense" → "No one spoke, only the ticking of the clock could be heard"
 
-#### 💡 主动搜索建议
+#### 💡 Proactive Search Suggestions
 
-**当遇到以下情况时,考虑使用 WebSearch 获取真实细节**：
+**When you encounter the following situations, consider using WebSearch to get real details**:
 
-- 历史事件：搜索真实日期、人物、地点
-- 技术细节：搜索实际参数、专业术语
-- 地理信息：搜索真实地名、距离、地标
-- 文化习俗：搜索当地方言、习俗、特产
-- 数据支撑：搜索真实统计、案例、新闻
+-   Historical events: Search for real dates, people, places.
+-   Technical details: Search for actual parameters, professional terms.
+-   Geographical information: Search for real place names, distances, landmarks.
+-   Cultural customs: Search for local dialects, customs, specialties.
+-   Data support: Search for real statistics, case studies, news.
 
-**搜索公式**：
-
-```
-- "中国古代 [朝代] 官职体系"
-- "[城市名] 特色方言词汇"
-- "[年代] 真实历史事件"
-- "[行业] 专业术语大全"
-```
-
-#### ✅ 具象化自检问题
-
-- [ ] 时间是否具体？（避免"最近"、"很久"）
-- [ ] 人物来源是否明确？（避免"有人"、"大家"）
-- [ ] 数量是否精确？（避免"很多"、"不少"）
-- [ ] 场景细节是否可见？（避免"很xx"的形容）
-- [ ] 是否用了真实的地名/人名/数据？
-- [ ] 对话是否有具体内容？（避免"他说了很多"）
-
-#### 📌 具象化注意事项
-
-**适度原则**：
-
-- ✅ 关键情节必须具象：转折点、高潮、伏笔
-- ✅ 重要细节必须具象：第一印象、关键道具
-- ⚠️ 次要信息可以概括：过渡段落、背景铺陈
-- ❌ 避免过度具象：流水账、啰嗦
-
-**场景适配**：
-
-- 古代背景：历史白描,适度具象
-- 现代背景：生活细节,高度具象
-- 玄幻背景：世界观设定,适度具象
-
-**示例对比**：
-
-❌ **抽象版**（AI腔）:
+**Search Formulas**:
 
 ```
-最近城里发生了很多事,大家都在议论。王强听说后很担心,决定去看看情况。
+- "Ancient Chinese [Dynasty] official system"
+- "[City Name] characteristic dialect words"
+- "[Year] real historical events"
+- "[Industry] professional terminology encyclopedia"
 ```
 
-✅ **具象版**（真实感）:
+#### ✅ Concretization Self-Check Questions
+
+-   [ ] Is the time specific? (Avoid "recently," "a long time ago")
+-   [ ] Is the source of the character clear? (Avoid "someone," "everyone")
+-   [ ] Is the quantity precise? (Avoid "a lot," "quite a few")
+-   [ ] Are the scene details visible? (Avoid adjectives like "very xx")
+-   [ ] Are real place names/personal names/data used?
+-   [ ] Does the dialogue have specific content? (Avoid "he said a lot")
+
+#### 📌 Concretization Notes
+
+**Principle of Moderation**:
+
+-   ✅ Key plot points must be concrete: turning points, climaxes, foreshadowing.
+-   ✅ Important details must be concrete: first impressions, key props.
+-   ⚠️ Secondary information can be summarized: transitional paragraphs, background exposition.
+-   ❌ Avoid over-concretization: a laundry list, being verbose.
+
+**Scene Adaptation**:
+
+-   Ancient settings: Historical plain description, moderate concretization.
+-   Modern settings: Life details, high concretization.
+-   Fantasy settings: World-building, moderate concretization.
+
+**Example Comparison**:
+
+❌ **Abstract Version** (AI-style):
 
 ```
-上周三开始,菜市场的李婶就一直在说东街出事了。
-
-王强听了两天,实在忍不住:"到底出什么事了？"
-
-"死了人啊！"李婶压低声音,"听说是那个开超市的老张..."
-
-王强心里一紧。老张他认识,上个月还在他那买过米。
-
-他决定下午过去看看。
+A lot has happened in the city recently, and everyone is talking about it. Wang Qiang was very worried after hearing about it and decided to go see the situation.
 ```
 
-**具象化效果对比**：
-
-- 时间：最近 → 上周三
-- 地点：城里 → 东街、菜市场
-- 人物：大家 → 李婶、老张
-- 事件：很多事 → 死了人、开超市的
-- 细节：听说 → 压低声音、上个月买过米
-
-### 7. 保存和更新
-
-- 将章节内容保存到 `stories/*/content/`
-- 更新任务状态为 `completed`
-- 记录完成时间和字数
-
-## 写作要点
-
-- **遵循宪法**：始终符合创作原则
-- **满足规格**：确保包含必要元素
-- **执行计划**：按照技术方案推进
-- **完成任务**：系统化推进任务清单
-- **持续验证**：定期运行 `/analyze` 检查
-
-## 完成后行动（完成提示 + 引导）
-
-保存后在聊天中输出：
+✅ **Concrete Version** (Realistic feel):
 
 ```
-✅ 章节已保存到 stories/*/content/xxx.md
+Starting last Wednesday, Auntie Li at the market has been saying that something happened on East Street.
+
+After hearing it for two days, Wang Qiang couldn't stand it anymore: "What on earth happened?"
+
+"Someone died!" Auntie Li lowered her voice, "I hear it was old Zhang who runs the supermarket..."
+
+Wang Qiang's heart tightened. He knew old Zhang; he had bought rice from him just last month.
+
+He decided to go over in the afternoon.
 ```
 
-### 8. 验证字数和更新进度
+**Concretization Effect Comparison**:
 
-**字数统计说明**：
+-   Time: Recently → Last Wednesday
+-   Place: In the city → East Street, the market
+-   Character: Everyone → Auntie Li, old Zhang
+-   Event: A lot has happened → Someone died, the one who runs the supermarket
+-   Detail: Heard about it → Lowered her voice, bought rice from him last month
 
-- 使用准确的中文字数统计方法
-- 排除Markdown标记（`#`、`*`、`-`等）
-- 只统计实际内容字符
-- 字数要求来自 `spec/tracking/validation-rules.json`（默认2000-4000字）
+### 7. Save and Update
 
-**验证方法**：
-使用 `execute_command` 运行 Node 一行脚本统计中文字符数（跨平台）：
+-   Save the chapter content to `stories/*/content/`.
+-   Update the task status to `completed`.
+-   Record the completion time and word count.
+
+## Writing Key Points
+
+-   **Follow the Constitution**: Always adhere to the creative principles.
+-   **Meet the Specifications**: Ensure necessary elements are included.
+-   **Execute the Plan**: Proceed according to the technical plan.
+-   **Complete the Tasks**: Systematically advance the task list.
+-   **Continuous Validation**: Periodically run `/analyze` to check.
+
+## Post-completion Actions (Completion Prompt + Guidance)
+
+After saving, output in the chat:
+
+```
+✅ Chapter has been saved to stories/*/content/xxx.md
+```
+
+### 8. Validate Word Count and Update Progress
+
+**Word Count Statistics Note**:
+
+-   Use an accurate method for counting Chinese characters.
+-   Exclude Markdown markup (`#`, `*`, `-`, etc.).
+-   Only count actual content characters.
+-   Word count requirements come from `spec/tracking/validation-rules.json` (default 2000-4000 words).
+
+**Validation Method**:
+Use `execute_command` to run a one-line Node script to count Chinese characters (cross-platform):
 
 ```bash
-node -e "const fs=require('fs');const f=process.argv[1];const t=fs.readFileSync(f,'utf8');const n=(t.match(/[\\p{Script=Han}]/gu)||[]).length;console.log(n)" stories/*/content/第X章.md
+node -e "const fs=require('fs');const f=process.argv[1];const t=fs.readFileSync(f,'utf8');const n=(t.match(/[\\p{Script=Han}]/gu)||[]).length;console.log(n)" stories/*/content/ChapterX.md
 ```
 
-⚠️ **注意**：不要使用 `wc -w` 统计中文字数，它对中文极不准确！
+⚠️ **Note**: Do not use `wc -w` to count Chinese characters, as it is highly inaccurate for Chinese!
 
-**完成报告**：
-
-```
-✅ 章节写作完成
-- 已保存：stories/*/content/第X章.md
-- 实际字数：[X]字
-- 字数要求：2000-4000字
-- 字数状态：✅ 符合要求 / ⚠️ 字数不足 / ⚠️ 字数超出
-- 任务状态：已更新
-```
-
-### 9. 建议下一步
-
-- 继续下一个写作任务
-- 每5章运行 `/analyze` 进行质量检查
-- 发现问题及时调整计划
-
-## 与方法论的关系
+**Completion Report**:
 
 ```
-/constitution → 提供创作原则
-     ↓
-/specify → 定义故事需求
-     ↓
-/clarify → 澄清关键决策
-     ↓
-/plan → 制定技术方案
-     ↓
-/tasks → 分解执行任务
-     ↓
-/write → 【当前】执行写作
-     ↓
-/analyze → 验证质量一致
+✅ Chapter writing complete
+- Saved to: stories/*/content/ChapterX.md
+- Actual word count: [X] words
+- Word count requirement: 2000-4000 words
+- Word count status: ✅ Meets requirement / ⚠️ Insufficient words / ⚠️ Exceeds word count
+- Task status: Updated
 ```
 
-记住：写作是执行层，要严格遵循上层的规格和计划。
+### 9. Suggest Next Steps
+
+-   Continue to the next writing task.
+-   Run `/analyze` for a quality check every 5 chapters.
+-   Adjust the plan promptly if issues are found.
+
+## Relationship with the Methodology
+
+```
+/constitution → Provides creative principles
+     ↓
+/specify → Defines story requirements
+     ↓
+/clarify → Clarifies key decisions
+     ↓
+/plan → Develops a technical plan
+     ↓
+/tasks → Breaks down execution tasks
+     ↓
+/write → 【Current】Executes writing
+     ↓
+/analyze → Validates quality and consistency
+```
+
+Remember: Writing is the execution layer; it must strictly follow the specifications and plans from the upper layers.
