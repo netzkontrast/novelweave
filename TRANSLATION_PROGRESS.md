@@ -26,32 +26,32 @@ This file tracks the translation progress of the documentation and templates.
 - [x] `templates/novel-experts/core/plot.md`
 - [x] `templates/novel-experts/core/style.md`
 - [x] `templates/novel-experts/core/world.md`
-- [ ] `templates/novel-knowledge/anti-ai-advanced.md`
-- [ ] `templates/novel-knowledge/character-profiles.md`
-- [ ] `templates/novel-knowledge/character-voices.md`
-- [ ] `templates/novel-knowledge/detail-formulas.md`
-- [ ] `templates/novel-knowledge/improvement-log.md`
-- [ ] `templates/novel-knowledge/locations.md`
-- [ ] `templates/novel-knowledge/natural-expression.md`
-- [ ] `templates/novel-knowledge/punctuation-personality.md`
-- [ ] `templates/novel-knowledge/world-setting.md`
-- [ ] `templates/novel-knowledge/writing-methods-guide.md`
-- [ ] `templates/novel-memory/constitution.md`
-- [ ] `templates/novel-memory/personal-voice.md`
-- [ ] `templates/novel-presets/hero-journey/outline.md`
-- [ ] `templates/novel-presets/hero-journey/story.md`
-- [ ] `templates/novel-presets/pixar-formula/outline.md`
-- [ ] `templates/novel-presets/pixar-formula/story.md`
-- [ ] `templates/novel-presets/seven-point/outline.md`
-- [ ] `templates/novel-presets/seven-point/story.md`
-- [ ] `templates/novel-presets/snowflake/outline.md`
-- [ ] `templates/novel-presets/snowflake/story.md`
-- [ ] `templates/novel-presets/story-circle/outline.md`
-- [ ] `templates/novel-presets/story-circle/story.md`
-- [ ] `templates/novel-presets/three-act/outline.md`
-- [ ] `templates/novel-presets/three-act/story.md`
-- [ ] `templates/novel-presets/anti-ai-detection.md`
-- [ ] `templates/novel-presets/golden-opening.md`
+- [x] `templates/novel-knowledge/anti-ai-advanced.md`
+- [x] `templates/novel-knowledge/character-profiles.md`
+- [x] `templates/novel-knowledge/character-voices.md`
+- [x] `templates/novel-knowledge/detail-formulas.md`
+- [x] `templates/novel-knowledge/improvement-log.md`
+- [x] `templates/novel-knowledge/locations.md`
+- [x] `templates/novel-knowledge/natural-expression.md`
+- [x] `templates/novel-knowledge/punctuation-personality.md`
+- [x] `templates/novel-knowledge/world-setting.md`
+- [x] `templates/novel-knowledge/writing-methods-guide.md`
+- [x] `templates/novel-memory/constitution.md`
+- [x] `templates/novel-memory/personal-voice.md`
+- [x] `templates/novel-presets/hero-journey/outline.md`
+- [x] `templates/novel-presets/hero-journey/story.md`
+- [x] `templates/novel-presets/pixar-formula/outline.md`
+- [x] `templates/novel-presets/pixar-formula/story.md`
+- [x] `templates/novel-presets/seven-point/outline.md`
+- [x] `templates/novel-presets/seven-point/story.md`
+- [x] `templates/novel-presets/snowflake/outline.md`
+- [x] `templates/novel-presets/snowflake/story.md`
+- [x] `templates/novel-presets/story-circle/outline.md`
+- [x] `templates/novel-presets/story-circle/story.md`
+- [x] `templates/novel-presets/three-act/outline.md`
+- [x] `templates/novel-presets/three-act/story.md`
+- [x] `templates/novel-presets/anti-ai-detection.md`
+- [x] `templates/novel-presets/golden-opening.md`
 - [ ] `templates/skills/genre-knowledge/fantasy/SKILL.md`
 - [ ] `templates/skills/genre-knowledge/mystery/SKILL.md`
 - [ ] `templates/skills/genre-knowledge/romance/SKILL.md`
