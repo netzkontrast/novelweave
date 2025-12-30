@@ -1,253 +1,253 @@
 ---
-description: 综合追踪小说创作进度和内容
-argument-hint: [--brief | --plot | --stats | --check]
+description: "Comprehensive tracking of novel writing progress and content."
+argument-hint: "[--brief | --plot | --stats | --check]"
 ---
 
-# 综合进度追踪
+# Comprehensive Progress Tracking
 
-全面展示小说创作的各项进度和状态。
+A complete display of all progress and statuses in the novel writing process.
 
-用户输入：$ARGUMENTS
+User Input: $ARGUMENTS
 
-## 项目结构检查
+## Project Structure Check
 
-首先确保项目目录结构存在。使用 `execute_command` 工具执行：
+First, ensure the project directory structure exists. Use the `execute_command` tool to execute:
 
 ```bash
 mkdir -p memory stories spec/tracking
 ```
 
-## 追踪维度
+## Tracking Dimensions
 
-1. **写作进度** - 字数、章节、完成率
-2. **情节发展** - 主线进度、支线状态
-3. **时间线** - 故事时间推进
-4. **角色状态** - 角色发展和位置
-5. **伏笔管理** - 埋设和回收状态
+1.  **Writing Progress** - Word count, chapters, completion rate.
+2.  **Plot Development** - Main plot progress, subplot status.
+3.  **Timeline** - Progression of the story's time.
+4.  **Character Status** - Character development and location.
+5.  **Foreshadowing Management** - Status of planting and resolving.
 
-## 使用方法
+## Usage
 
-支持以下操作（从 $ARGUMENTS 中解析）：
+The following operations are supported (parsed from `$ARGUMENTS`):
 
-- 无参数 - 显示完整追踪报告
-- `--brief` - 显示简要信息
-- `--plot` - 仅显示情节追踪
-- `--stats` - 仅显示统计数据
-- `--check` - 执行深度一致性检查
+-   No arguments - Display the full tracking report.
+-   `--brief` - Display brief information.
+-   `--plot` - Display only plot tracking.
+-   `--stats` - Display only statistics.
+-   `--check` - Perform a deep consistency check.
 
-## 执行步骤
+## Execution Steps
 
-### 1. 加载追踪数据
+### 1. Load Tracking Data
 
-使用 `read_file` 工具读取追踪文件：
+Use the `read_file` tool to read the tracking files:
 
-- `spec/tracking/timeline.json` - 时间线数据
-- `spec/tracking/relationships.json` - 关系网络
-- `spec/tracking/plot-tracker.json` - 情节追踪（如果存在）
-- `spec/tracking/character-state.json` - 角色状态（如果存在）
+-   `spec/tracking/timeline.json` - Timeline data.
+-   `spec/tracking/relationships.json` - Relationship network.
+-   `spec/tracking/plot-tracker.json` - Plot tracking (if it exists).
+-   `spec/tracking/character-state.json` - Character status (if it exists).
 
-## 输出示例
+## Output Example
 
 ```
-📊 小说创作综合报告
+📊 Comprehensive Novel Writing Report
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📖 《大明风华录》
+📖 "The Grand Ming Dynasty"
 
-✍️ 写作进度
-  完成：60/240章 (25%)
-  字数：162,000/800,000
-  当前：第二卷《朝堂风云》
+✍️ Writing Progress
+  Completed: 60/240 chapters (25%)
+  Word Count: 162,000/800,000
+  Currently: Volume 2 "Courtroom Intrigues"
 
-📍 情节状态
-  主线：改革大业 [朝堂初入阶段]
-  支线：感情线 [相互了解]
+📍 Plot Status
+  Main Plot: The Great Reform [Initial entry into the court]
+  Subplot: Romance [Getting to know each other]
 
-⏰ 时间线
-  故事时间：万历三十年春
-  时间跨度：5个月
+⏰ Timeline
+  Story Time: Spring, 30th year of the Wanli reign
+  Time Span: 5 months
 
-👥 主要角色
-  李中庸：翰林院编修 @北京
-  沈玉卿：张居正义女 [活跃]
+👥 Main Characters
+  Li Zhongyong: Hanlin Academy Compiler @ Beijing
+  Shen Yuqing: Adopted daughter of Zhang Juzheng [Active]
 
-⚡ 待处理
-  伏笔：3个未回收
-  冲突：改革vs保守 [升级中]
+⚡ To Be Addressed
+  Foreshadowing: 3 unresolved
+  Conflict: Reformists vs. Conservatives [Escalating]
 
-✅ 一致性检查：通过
+✅ Consistency Check: Passed
 ```
 
-## 增强功能
+## Enhanced Features
 
-### 数据一致性验证
+### Data Consistency Validation
 
-基础检查（默认执行）：
+Basic Check (executed by default):
 
-- 文件完整性：`spec/tracking/*.json` 均存在且 JSON 有效；`progress.json`（如存在）格式有效
-- 章节号同步：`progress.json.statistics.currentChapter`、`plot-tracker.json.currentState.chapter`、`character-state.json.protagonist.currentStatus.chapter` 一致
-- plot-tracker.json 与 stories/\*/creative-plan.md 的一致性
-- timeline.json 的时间逻辑（章节递增、当前时间设置）
-- relationships.json 的关系冲突
-- character-state.json 的位置合理性
+-   File Integrity: `spec/tracking/*.json` all exist and are valid JSON; `progress.json` (if it exists) has a valid format.
+-   Chapter Number Sync: `progress.json.statistics.currentChapter`, `plot-tracker.json.currentState.chapter`, and `character-state.json.protagonist.currentStatus.chapter` are consistent.
+-   Consistency between `plot-tracker.json` and `stories/*/creative-plan.md`.
+-   Time logic of `timeline.json` (chapters incrementing, current time set).
+-   Relationship conflicts in `relationships.json`.
+-   Positional logic in `character-state.json`.
 
-### 深度验证模式 (--check)
+### Deep Validation Mode (`--check`)
 
-当使用 `--check` 参数时，执行程序化的深度验证：
+When the `--check` parameter is used, a programmatic deep validation is performed:
 
-#### 内部任务流程（自动执行）
+#### Internal Task Flow (automatic execution)
 
 ```markdown
-# Phase 1: 基础验证 [并行执行]
+# Phase 1: Basic Validation [Parallel execution]
 
-- [x] T001 [P] 文件完整性检查（progress.json、plot-tracker.json、timeline.json、relationships.json、character-state.json）
-- [x] T002 [P] 章节号同步检查（progress.json ↔ plot-tracker.json ↔ character-state.json）
-- [x] T003 [P] 执行情节一致性检查 (plot-check逻辑)
-- [x] T004 [P] 执行时间线验证 (timeline逻辑：章节升序、当前时间设置)
-- [x] T005 [P] 执行关系验证 (relations逻辑)
-- [x] T006 [P] 执行世界观验证 (world-check逻辑)
+- [x] T001 [P] File integrity check (progress.json, plot-tracker.json, timeline.json, relationships.json, character-state.json)
+- [x] T002 [P] Chapter number synchronization check (progress.json ↔ plot-tracker.json ↔ character-state.json)
+- [x] T003 [P] Execute plot consistency check (plot-check logic)
+- [x] T004 [P] Execute timeline validation (timeline logic: chapter ascending order, current time setting)
+- [x] T005 [P] Execute relationship validation (relations logic)
+- [x] T006 [P] Execute world-building validation (world-check logic)
 
-# Phase 2: 角色深度验证
+# Phase 2: In-depth Character Validation
 
-- [x] T007 加载validation-rules.json验证规则
-- [x] T008 扫描所有章节中的角色名称
-- [x] T009 对比character-state.json验证名称一致性
-- [x] T010 检查称呼是否符合relationships.json
-- [x] T011 验证角色行为是否符合人设
+- [x] T007 Load validation rules from validation-rules.json
+- [x] T008 Scan all character names in the chapters
+- [x] T009 Compare with character-state.json to validate name consistency
+- [x] T010 Check if forms of address comply with relationships.json
+- [x] T011 Validate if character actions are consistent with their profiles
 
-# Phase 3: 生成综合报告
+# Phase 3: Generate Comprehensive Report
 
-- [x] T012 汇总所有验证结果
-- [x] T013 标记问题严重程度
-- [x] T014 统计伏笔（总数、活跃数、超期未回收>50章）
-- [x] T015 生成修复建议
-- [x] T016 输出/更新 `spec/tracking/.last-check.json`（timestamp、total、passed、warnings、errors）
+- [x] T012 Summarize all validation results
+- [x] T013 Mark the severity of issues
+- [x] T014 Tally foreshadowing (total, active, overdue >50 chapters)
+- [x] T015 Generate repair suggestions
+- [x] T016 Output/Update `spec/tracking/.last-check.json` (timestamp, total, passed, warnings, errors)
 ```
 
-#### 验证报告示例
+#### Validation Report Example
 
 ```
-📊 深度验证报告
+📊 Deep Validation Report
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-✅ 通过项目: 15/18
+✅ Passed Items: 15/18
 
-❌ 发现问题 (3):
-1. [高] 第3章: 主角名"李明"应为"李中庸"
-2. [中] 第7章: 沈玉卿称呼错误，用了"师兄"
-3. [低] 第12章: 时间线跳跃未说明
+❌ Issues Found (3):
+1. [High] Chapter 3: Protagonist's name "Li Ming" should be "Li Zhongyong"
+2. [Medium] Chapter 7: Incorrect form of address for Shen Yuqing, used "Senior Brother"
+3. [Low] Chapter 12: Unexplained time jump in the timeline
 
-🔧 可自动修复: 2个
-📝 需人工确认: 1个
+🔧 Autofixable: 2
+📝 Needs Manual Confirmation: 1
 
-运行 /track --fix 自动修复简单问题
+Run /track --fix to automatically fix simple issues.
 ```
 
-### 自动修复模式 (--fix)
+### Auto-Fix Mode (`--fix`)
 
-当使用 `--fix` 参数时，基于验证报告自动修复：
+When the `--fix` parameter is used, issues are automatically fixed based on the validation report:
 
-#### 自动修复范围
+#### Auto-Fix Scope
 
-1. **角色名称错误** - 根据validation-rules.json自动替换
-2. **固定称呼错误** - 自动修正为正确称呼
-3. **简单拼写错误** - 修正明显的typo
+1.  **Character Name Errors** - Automatically replace based on `validation-rules.json`.
+2.  **Fixed Form of Address Errors** - Automatically correct to the right form of address.
+3.  **Simple Typos** - Correct obvious typos.
 
-#### 修复流程
+#### Fix Flow
 
 ```markdown
-# 内部修复任务（自动执行）
+# Internal Fix Tasks (automatic execution)
 
-- [x] F001 读取验证报告中的问题列表
-- [x] F002 [P] 修复第3章角色名称错误
-- [x] F003 [P] 修复第7章称呼错误
-- [x] F004 生成修复报告
-- [x] F005 更新追踪文件
+- [x] F001 Read the list of issues from the validation report
+- [x] F002 [P] Fix character name error in Chapter 3
+- [x] F003 [P] Fix form of address error in Chapter 7
+- [x] F004 Generate a fix report
+- [x] F005 Update tracking files
 ```
 
-#### 修复报告示例
+#### Fix Report Example
 
 ```
-🔧 自动修复报告
+🔧 Auto-Fix Report
 ━━━━━━━━━━━━━━━━━━━
-✅ 已修复: 2个问题
-- 第3章: "李明" → "李中庸"
-- 第7章: "师兄" → "公子"
+✅ Fixed: 2 issues
+- Chapter 3: "Li Ming" → "Li Zhongyong"
+- Chapter 7: "Senior Brother" → "Young Master"
 
-⚠️ 需人工处理: 1个问题
-- 第12章: 时间线跳跃需要补充说明
+⚠️ Needs Manual Handling: 1 issue
+- Chapter 12: The time jump needs an explanation.
 
-修复完成！建议重新运行 /track --check 验证
+Fix complete! It is recommended to run /track --check again to verify.
 ```
 
-### 智能分析与建议
+### Smart Analysis and Suggestions
 
-1. **进度分析**
-    - 对比计划进度和实际进度
-    - 预测完成时间
-    - 识别写作瓶颈
+1.  **Progress Analysis**
+    -   Compare planned progress with actual progress.
+    -   Predict completion time.
+    -   Identify writing bottlenecks.
 
-2. **内容分析**
-    - 伏笔覆盖率（已埋设/已回收）
-    - 角色出场频率
-    - 冲突强度曲线
+2.  **Content Analysis**
+    -   Foreshadowing coverage (planted/resolved).
+    -   Character appearance frequency.
+    -   Conflict intensity curve.
 
-3. **行动建议**
-   根据分析结果提供：
-    - 下一步写作重点
-    - 需要处理的伏笔
-    - 建议加强的关系线
-    - 时间线调整建议
+3.  **Actionable Suggestions**
+    Based on the analysis, provide:
+    -   Next writing priorities.
+    -   Foreshadowing that needs to be addressed.
+    -   Relationship lines that need strengthening.
+    -   Timeline adjustment suggestions.
 
-### 情节一致性检查细则（对齐 check-plot 逻辑）
+### Plot Consistency Check Details (align with `check-plot` logic)
 
-在生成或阅读报告时，补充以下“情节对齐”检查项：
+When generating or reading the report, add the following "plot alignment" check items:
 
-- 主线进度：`plot-tracker.json.plotlines.main.currentNode` 与 `status`
-- 完成节点数：`completedNodes.length`；展示最近3个
-- 即将到来：`upcomingNodes[0:3]`
-- 伏笔统计：总数、活跃数、已回收数；超期未回收阈值（建议30-50章，根据题材微调）
-- 冲突统计：`conflicts.active.length` 及强度标签（intensity）
-- 节奏建议：根据当前章节范围生成“钩子/小高潮/卷尾”提醒
+-   Main plot progress: `plot-tracker.json.plotlines.main.currentNode` and `status`.
+-   Number of completed nodes: `completedNodes.length`; display the last 3.
+-   Upcoming: `upcomingNodes[0:3]`.
+-   Foreshadowing statistics: total, active, resolved; overdue threshold (suggested 30-50 chapters, with minor adjustments based on genre).
+-   Conflict statistics: `conflicts.active.length` and intensity labels.
+-   Pacing suggestions: Generate "hook/mini-climax/end-of-volume" reminders based on the current chapter range.
 
-若 `spec/tracking/plot-tracker.json` 缺失：先提示通过 `/track-init` 初始化（不阻断其他检查）。
+If `spec/tracking/plot-tracker.json` is missing: first prompt to initialize with `/track-init` (without blocking other checks).
 
-### 可视化报告
+### Visualized Report
 
-生成结构化报告：
+Generate a structured report:
 
 ```
-📊 综合追踪报告
+📊 Comprehensive Tracking Report
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-[进度条] ████████░░░░░░░ 25%
+[Progress Bar] ████████░░░░░░░ 25%
 
-🎯 下一步建议：
-1. 第65章前回收"青铜古镜"伏笔
-2. 加强主角与反派的正面冲突
-3. 补充第二卷的时间线细节
+🎯 Next Step Suggestions:
+1. Resolve the "Ancient Bronze Mirror" foreshadowing before Chapter 65.
+2. Strengthen the direct conflict between the protagonist and the antagonist.
+3. Supplement the timeline details for the second volume.
 
-⚠️ 需要关注：
-- 角色B已5章未出场
-- 支线剧情进度滞后
-- 第45章的时间跳跃需要说明
+⚠️ Needs Attention:
+- Character B has not appeared for 5 chapters.
+- Subplot progress is lagging.
+- The time jump in Chapter 45 needs to be explained.
 ```
 
-### 数据导出
+### Data Export
 
-支持导出追踪数据为：
+Support exporting tracking data as:
 
-- Markdown 格式的完整报告
-- JSON 格式的原始数据
-- 可视化图表（关系图、时间轴）
+-   A complete report in Markdown format.
+-   Raw data in JSON format.
+-   Visual charts (relationship graph, timeline).
 
-## 完成提示 + 下一步
+## Completion Prompt + Next Steps
 
-在聊天中输出：
+Output in chat:
 
 ```
-✅ 追踪报告已生成（--brief/--plot/--stats/--check）
+✅ Tracking report has been generated (--brief/--plot/--stats/--check)
 ```
 
-建议：
+Recommendations:
 
-- 若存在错误/警告 → 按报告中的“修复建议”优先处理
-- 内容问题 → `/write` 修正文稿；框架/任务问题 → `/plan`、`/tasks`
-- 通过修复后，可再次运行 `/track --check` 验证
+-   If there are errors/warnings → Prioritize handling according to the "Repair Suggestions" in the report.
+-   Content issues → `/write` to revise the manuscript; Framework/task issues → `/plan`, `/tasks`.
+-   After fixing, you can run `/track --check` again to verify.

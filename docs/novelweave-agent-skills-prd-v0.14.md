@@ -1,197 +1,197 @@
-# NovelWeave Agent Skills 支持功能 PRD v0.14.0
+# NovelWeave Agent Skills Support Function PRD v0.14.0
 
-## 📋 文档信息
+## 📋 Document Information
 
-| 项目         | 信息                                 |
-| ------------ | ------------------------------------ |
-| **文档版本** | v0.14.0 ⚠️ **重大架构变更**          |
-| **创建日期** | 2025-10-20                           |
-| **产品名称** | NovelWeave - Agent Skills Support    |
-| **目标版本** | v0.14.0                              |
-| **负责人**   | WordFlow Lab                         |
-| **状态**     | 📝 Design Review                     |
-| **前置版本** | v0.13.0 设计（已废弃，存在设计缺陷） |
+| Item | Information |
+| --- | --- |
+| **Document Version** | v0.14.0 ⚠️ **Major Architectural Change** |
+| **Creation Date** | 2025-10-20 |
+| **Product Name** | NovelWeave - Agent Skills Support |
+| **Target Version** | v0.14.0 |
+| **Owner** | WordFlow Lab |
+| **Status** | 📝 Design Review |
+| **Previous Version** | v0.13.0 Design (Deprecated, contains design flaws) |
 
-## 修订历史
+## Revision History
 
-| 版本    | 日期       | 作者         | 变更说明                                                 |
-| ------- | ---------- | ------------ | -------------------------------------------------------- |
-| v0.14.0 | 2025-10-20 | AI Assistant | **重大架构变更**：采用项目初始化模式（学习 Claude Code） |
-| v0.13.0 | 2025-10-19 | AI Assistant | 初始设计（已废弃，存在设计缺陷）                         |
+| Version | Date | Author | Change Description |
+| --- | --- | --- | --- |
+| v0.14.0 | 2025-10-20 | AI Assistant | **Major Architectural Change**: Adopt project initialization model (learning from Claude Code) |
+| v0.13.0 | 2025-10-19 | AI Assistant | Initial Design (Deprecated, contains design flaws) |
 
 ---
 
-## 🎯 为什么需要 v0.14.0？
+## 🎯 Why is v0.14.0 Needed?
 
-### v0.13.0 设计的关键缺陷
+### Key Flaws in the v0.13.0 Design
 
-v0.13.0 的初始设计存在**致命的架构问题**：
+The initial design of v0.13.0 had **fatal architectural problems**:
 
-#### 问题 1：内置 Skills 无法修改
+#### Problem 1: Built-in Skills Cannot Be Modified
 
 ```
-内置 Skills 位置：dist/templates/skills/  ← 构建产物
-                                         ← 只读
-                                         ← 每次构建覆盖
-                                         ← 用户修改会丢失！
+Built-in Skills location: dist/templates/skills/  ← Build artifact
+                                         ← Read-only
+                                         ← Overwritten with each build
+                                         ← User modifications will be lost!
 ```
 
-**影响**：
+**Impact**:
 
-- ❌ 用户无法自定义内置 Skills
-- ❌ 即使声称"项目 Skills 覆盖内置"，用户得从零写一个同名 Skill
-- ❌ 不符合"开箱即用"的承诺
+- ❌ Users cannot customize built-in Skills
+- ❌ Even if it claims "project Skills override built-in", users have to write a Skill with the same name from scratch
+- ❌ Does not meet the "out-of-the-box" promise
 
-#### 问题 2：三层优先级过于复杂
+#### Problem 2: Three-Tier Priority is Overly Complex
 
 ```typescript
-// v0.13.0 设计
-extension:romance  ← 内置（只读）
-project:romance    ← 项目（可修改）
-personal:romance   ← 个人（可修改）
+// v0.13.0 design
+extension:romance  ← Built-in (read-only)
+project:romance    ← Project (modifiable)
+personal:romance   ← Personal (modifiable)
 
-// 三个不同的 Skill！无法真正"覆盖"
+// Three different Skills! Cannot truly "override"
 ```
 
-**影响**：
+**Impact**:
 
-- ❌ Skill ID 包含 source 前缀，无法覆盖
-- ❌ 逻辑复杂，难以理解
-- ❌ 用户困惑：为什么有三个 romance Skill？
+- ❌ Skill ID includes a source prefix, cannot be overridden
+- ❌ The logic is complex and difficult to understand
+- ❌ User confusion: Why are there three romance Skills?
 
-#### 问题 3：不符合行业最佳实践
+#### Problem 3: Does Not Follow Industry Best Practices
 
-**Cursor / Claude Code 的做法**：
+**How Cursor / Claude Code Does It**:
 
 ```bash
-# 首次使用时
+# On first use
 .claude/
-├── skills/      ← 从模板复制到项目
-├── commands/    ← 用户完全掌控
-└── config.json  ← Git 版本控制
+├── skills/      ← Copied from a template to the project
+├── commands/    ← User has full control
+└── config.json  ← Version controlled by Git
 ```
 
-**v0.13.0 的做法**（错误）：
+**The v0.13.0 Way** (Wrong):
 
 ```bash
-# 运行时
-dist/templates/skills/  ← 只读，用户无法修改
-.agent/skills/          ← 可修改，但需要从零写
+# At runtime
+dist/templates/skills/  ← Read-only, user cannot modify
+.agent/skills/          ← Modifiable, but needs to be written from scratch
 ```
 
 ---
 
-## ✅ v0.14.0 的核心变更
+## ✅ Core Changes in v0.14.0
 
-### 设计理念：项目初始化模式
+### Design Philosophy: Project Initialization Model
 
-**学习 Claude Code / Cursor**：将内置 Skills 作为**初始化模板**，而非运行时依赖。
+**Learning from Claude Code / Cursor**: Use built-in Skills as **initialization templates**, not runtime dependencies.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ 1. 首次使用                                              │
-│    用户打开项目 → 检测到未初始化                          │
-│    ↓                                                      │
-│    提示："是否初始化 Agent Skills 到项目？"                │
-│    ↓                                                      │
-│    用户确认 → 复制所有内置 Skills 到 .agent/skills/       │
+│ 1. First Use                                            │
+│    User opens project → Detects it's not initialized    │
+│    ↓                                                    │
+│    Prompt: "Initialize Agent Skills for the project?"   │
+│    ↓                                                    │
+│    User confirms → Copy all built-in Skills to .agent/skills/ │
 └─────────────────────────────────────────────────────────┘
                         ↓
 ┌─────────────────────────────────────────────────────────┐
-│ 2. 日常使用                                              │
-│    用户可以：                                             │
-│    - ✅ 直接修改 .agent/skills/ 中的任何 Skill           │
-│    - ✅ 删除不需要的 Skills                              │
-│    - ✅ 添加新的 Skills                                  │
-│    - ✅ 提交到 Git，团队共享                             │
+│ 2. Daily Use                                            │
+│    The user can:                                        │
+│    - ✅ Directly modify any Skill in .agent/skills/     │
+│    - ✅ Delete unnecessary Skills                       │
+│    - ✅ Add new Skills                                  │
+│    - ✅ Commit to Git, share with the team              │
 └─────────────────────────────────────────────────────────┘
                         ↓
 ┌─────────────────────────────────────────────────────────┐
-│ 3. 团队协作                                              │
-│    团队成员 clone 项目 → .agent/skills/ 已存在            │
-│    ↓                                                      │
-│    直接使用，无需初始化                                   │
-│    ↓                                                      │
-│    修改 Skills → 提交 → 团队同步                         │
+│ 3. Team Collaboration                                   │
+│    Team members clone the project → .agent/skills/ already exists │
+│    ↓                                                    │
+│    Use directly, no initialization needed               │
+│    ↓                                                    │
+│    Modify Skills → Commit → Team syncs                  │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📊 v0.13.0 vs v0.14.0 对比
+## 📊 v0.13.0 vs v0.14.0 Comparison
 
-| 维度                   | v0.13.0（废弃）                         | v0.14.0（当前）                          |
-| ---------------------- | --------------------------------------- | ---------------------------------------- |
-| **内置 Skills 位置**   | `dist/templates/skills/`（运行时读取）  | `dist/templates/skills/`（仅初始化模板） |
-| **内置 Skills 可修改** | ❌ 只读，构建时覆盖                     | ✅ 初始化到项目后可修改                  |
-| **Skill ID**           | `extension:romance`（包含 source）      | `romance`（只用目录名）                  |
-| **优先级**             | extension < project < personal（三层）  | project > personal（两层）               |
-| **覆盖机制**           | ❌ 无法覆盖（ID 不同）                  | ✅ 同名自动覆盖                          |
-| **用户控制权**         | ⚠️ 部分（内置只读，需从零写项目 Skill） | ✅ 完全（所有 Skills 在项目中）          |
-| **团队协作**           | ⚠️ 可行但复杂（需要理解三层逻辑）       | ✅ 简单（Git 共享 `.agent/skills/`）     |
-| **首次使用**           | 立即可用（但无法修改）                  | 需初始化（一次性，然后完全掌控）         |
-| **更新机制**           | ⚠️ 扩展更新自动更新（覆盖用户修改）     | ✅ 不自动更新（用户完全掌控）            |
-| **学习曲线**           | ⚠️ 中等（需理解三层优先级）             | ✅ 低（项目文件，直接修改）              |
-| **符合业界实践**       | ❌ 自创模式                             | ✅ 学习 Cursor/Claude Code               |
+| Dimension | v0.13.0 (Deprecated) | v0.14.0 (Current) |
+| --- | --- | --- |
+| **Built-in Skills Location** | `dist/templates/skills/` (read at runtime) | `dist/templates/skills/` (only for initialization) |
+| **Built-in Skills Modifiable** | ❌ Read-only, overwritten on build | ✅ Modifiable after initialization to project |
+| **Skill ID** | `extension:romance` (includes source) | `romance` (uses only directory name) |
+| **Priority** | extension < project < personal (three-tier) | project > personal (two-tier) |
+| **Override Mechanism** | ❌ Cannot override (different IDs) | ✅ Same name automatically overrides |
+| **User Control** | ⚠️ Partial (built-in read-only, need to write project Skill from scratch) | ✅ Complete (all Skills are in the project) |
+| **Team Collaboration** | ⚠️ Feasible but complex (need to understand three-tier logic) | ✅ Simple (share `.agent/skills/` via Git) |
+| **First Use** | Immediately available (but cannot be modified) | Requires initialization (one-time, then full control) |
+| **Update Mechanism** | ⚠️ Extension updates automatically (overwrites user modifications) | ✅ No automatic updates (user has full control) |
+| **Learning Curve** | ⚠️ Medium (need to understand three-tier priority) | ✅ Low (project files, direct modification) |
+| **Follows Industry Practice** | ❌ Self-created model | ✅ Learns from Cursor/Claude Code |
 
 ---
 
-## 🏗️ 核心架构设计
+## 🏗️ Core Architecture Design
 
-### Skills 来源重定义
+### Redefining Skill Sources
 
-| 来源            | 位置                     | 作用               | 可修改 | Git 管理 | 优先级 |
-| --------------- | ------------------------ | ------------------ | ------ | -------- | ------ |
-| **模板**        | `dist/templates/skills/` | 仅用于初始化到项目 | ❌     | ❌       | N/A    |
-| **项目 Skills** | `.agent/skills/`         | 主要使用，团队共享 | ✅     | ✅       | 高     |
-| **个人 Skills** | `globalStorage/skills/`  | 跨项目的个人模板   | ✅     | ❌       | 低     |
+| Source | Location | Purpose | Modifiable | Git Managed | Priority |
+| --- | --- | --- | --- | --- | --- |
+| **Template** | `dist/templates/skills/` | Only for initializing to project | ❌ | ❌ | N/A |
+| **Project Skills** | `.agent/skills/` | Main usage, shared with team | ✅ | ✅ | High |
+| **Personal Skills** | `globalStorage/skills/` | Personal templates across projects | ✅ | ❌ | Low |
 
-**关键变化**：
+**Key Changes**:
 
-- ✅ 模板不再参与运行时扫描（仅初始化时使用）
-- ✅ 项目 Skills 成为主要使用方式
-- ✅ 个人 Skills 用于跨项目复用（如"我的写作风格"）
+- ✅ Templates are no longer scanned at runtime (only used for initialization)
+- ✅ Project Skills become the primary way of use
+- ✅ Personal Skills are used for cross-project reuse (e.g., "my writing style")
 
-### Skills 扫描逻辑简化
+### Simplified Skill Scanning Logic
 
 ```typescript
-// v0.14.0：只扫描两个位置
+// v0.14.0: Only scan two locations
 async scanSkills(): Promise<void> {
     this.skills.clear()
 
     const paths = [
-        // 1. 个人 Skills（全局）
+        // 1. Personal Skills (global)
         { source: 'personal', path: globalStorage/skills/ },
 
-        // 2. 项目 Skills（当前项目）
+        // 2. Project Skills (current project)
         { source: 'project', path: .agent/skills/ }
     ]
 
-    // 后者覆盖前者（Map.set 自动覆盖同名 key）
+    // The latter overrides the former (Map.set automatically overrides same key)
     for (const {source, path} of paths) {
         await this.scanDirectory(path, source)
     }
 }
 
-// Skill ID 生成：只用目录名
+// Skill ID generation: use only directory name
 generateSkillId(skillPath: string): string {
-    return path.basename(skillPath)  // "romance"（不包含 source）
+    return path.basename(skillPath)  // "romance" (without source)
 }
 ```
 
-**删除的复杂逻辑**：
+**Removed Complex Logic**:
 
-- ❌ 不再扫描 `dist/templates/skills/`
-- ❌ 不再处理 source 前缀
-- ❌ 不再需要复杂的优先级判断
+- ❌ No longer scan `dist/templates/skills/`
+- ❌ No longer handle source prefixes
+- ❌ No longer need complex priority judgments
 
 ---
 
-## 🚀 核心功能：Skills 初始化器
+## 🚀 Core Function: Skills Initializer
 
-### SkillsInitializer 设计
+### SkillsInitializer Design
 
-**位置**：`src/services/skills/SkillsInitializer.ts`
+**Location**: `src/services/skills/SkillsInitializer.ts`
 
 ```typescript
 import * as vscode from "vscode"
@@ -199,14 +199,14 @@ import * as path from "path"
 import * as fs from "fs/promises"
 
 /**
- * Skills 初始化器
- * 负责将内置 Skills 模板复制到项目
+ * Skills Initializer
+ * Responsible for copying built-in Skills templates to the project
  */
 export class SkillsInitializer {
 	constructor(private context: vscode.ExtensionContext) {}
 
 	/**
-	 * 检测项目是否已初始化 Skills
+	 * Detect if the project has initialized Skills
 	 */
 	async isInitialized(): Promise<boolean> {
 		const workspaceFolders = vscode.workspace.workspaceFolders
@@ -225,8 +225,8 @@ export class SkillsInitializer {
 	}
 
 	/**
-	 * 初始化 Skills 到项目
-	 * @param force 是否强制覆盖已存在的 Skills
+	 * Initialize Skills to the project
+	 * @param force Whether to force overwrite existing Skills
 	 */
 	async initializeSkills(force: boolean = false): Promise<void> {
 		const workspaceFolders = vscode.workspace.workspaceFolders
@@ -237,23 +237,23 @@ export class SkillsInitializer {
 		const projectRoot = workspaceFolders[0].uri.fsPath
 		const targetPath = path.join(projectRoot, ".agent", "skills")
 
-		// 检查是否已存在
+		// Check if it already exists
 		if (!force && (await this.isInitialized())) {
 			throw new Error("Skills already initialized. Use force=true to overwrite.")
 		}
 
-		// 获取模板路径
+		// Get the template path
 		const templatePath = path.join(this.context.extensionPath, "dist", "templates", "skills")
 
-		// 复制所有 Skills
+		// Copy all Skills
 		await this.copyDirectory(templatePath, targetPath)
 
-		// 创建 README
+		// Create README
 		await this.createReadme(targetPath)
 	}
 
 	/**
-	 * 递归复制目录
+	 * Recursively copy a directory
 	 */
 	private async copyDirectory(src: string, dest: string): Promise<void> {
 		await fs.mkdir(dest, { recursive: true })
@@ -273,59 +273,59 @@ export class SkillsInitializer {
 	}
 
 	/**
-	 * 创建 README 文件
+	 * Create a README file
 	 */
 	private async createReadme(skillsPath: string): Promise<void> {
 		const readme = `# NovelWeave Agent Skills
 
-这个目录包含您的项目 Agent Skills。
+This directory contains your project's Agent Skills.
 
-## 说明
+## Instructions
 
-- ✅ 您可以自由修改、删除或添加 Skills
-- ✅ Skills 文件会被 Git 跟踪，团队共享
-- ✅ 每个 Skill 是一个目录，包含 SKILL.md 文件
+- ✅ You can freely modify, delete, or add Skills
+- ✅ Skills files are tracked by Git and shared with the team
+- ✅ Each Skill is a directory containing a SKILL.md file
 
-## 目录结构
+## Directory Structure
 
 \`\`\`
 .agent/skills/
-├── genre-knowledge/       # 类型知识
+├── genre-knowledge/       # Genre Knowledge
 │   ├── romance/
 │   ├── mystery/
 │   └── fantasy/
-├── quality-assurance/     # 质量保证
+├── quality-assurance/     # Quality Assurance
 │   ├── consistency-checker/
 │   └── novelweave-workflow/
-└── writing-techniques/    # 写作技巧
+└── writing-techniques/    # Writing Techniques
     ├── dialogue-techniques/
     └── scene-structure/
 \`\`\`
 
-## 如何使用
+## How to Use
 
-1. **查看 Skill**：打开任意 Skill 目录中的 SKILL.md 文件
-2. **修改 Skill**：直接编辑 SKILL.md 或添加支持文件
-3. **删除 Skill**：删除整个 Skill 目录
-4. **添加新 Skill**：创建新目录，添加 SKILL.md 文件
+1. **View a Skill**: Open the SKILL.md file in any Skill directory
+2. **Modify a Skill**: Directly edit SKILL.md or add support files
+3. **Delete a Skill**: Delete the entire Skill directory
+4. **Add a new Skill**: Create a new directory and add a SKILL.md file
 
-## 参考资料
+## References
 
-- [Skills 编写指南](https://docs.novelweave.com/skills-guide)
-- [SKILL.md 格式规范](https://docs.novelweave.com/skill-format)
+- [Skills Writing Guide](https://docs.novelweave.com/skills-guide)
+- [SKILL.md Format Specification](https://docs.novelweave.com/skill-format)
 
 ---
 
-_初始化时间：${new Date().toISOString()}_
-_NovelWeave 版本：${this.context.extension.packageJSON.version}_
+_Initialization Time: ${new Date().toISOString()}_
+_NovelWeave Version: ${this.context.extension.packageJSON.version}_
 `
 
 		await fs.writeFile(path.join(skillsPath, "README.md"), readme, "utf-8")
 	}
 
 	/**
-	 * 检查是否有新的官方 Skills
-	 * 对比模板和项目中的 Skills
+	 * Check for new official Skills
+	 * Compare Skills in the template and the project
 	 */
 	async checkForNewSkills(): Promise<string[]> {
 		const templatePath = path.join(this.context.extensionPath, "dist", "templates", "skills")
@@ -335,12 +335,12 @@ _NovelWeave 版本：${this.context.extension.packageJSON.version}_
 		const templateSkills = await this.listSkills(templatePath)
 		const projectSkills = await this.listSkills(projectPath)
 
-		// 找出模板中有但项目中没有的 Skills
+		// Find Skills that are in the template but not in the project
 		return templateSkills.filter((skill) => !projectSkills.includes(skill))
 	}
 
 	/**
-	 * 列出目录中的所有 Skills
+	 * List all Skills in a directory
 	 */
 	private async listSkills(basePath: string): Promise<string[]> {
 		const skills: string[] = []
@@ -368,7 +368,7 @@ _NovelWeave 版本：${this.context.extension.packageJSON.version}_
 	}
 
 	/**
-	 * 添加缺失的 Skills
+	 * Add missing Skills
 	 */
 	async addMissingSkills(skillPaths: string[]): Promise<void> {
 		const templateBasePath = path.join(this.context.extensionPath, "dist", "templates", "skills")
@@ -385,7 +385,7 @@ _NovelWeave 版本：${this.context.extension.packageJSON.version}_
 }
 ```
 
-### 首次使用流程
+### First Use Flow
 
 ```typescript
 // src/extension.ts
@@ -393,48 +393,48 @@ _NovelWeave 版本：${this.context.extension.packageJSON.version}_
 export async function activate(context: vscode.ExtensionContext) {
 	// ... existing initialization ...
 
-	// 初始化 SkillsInitializer
+	// Initialize SkillsInitializer
 	const skillsInitializer = new SkillsInitializer(context)
 
-	// 检测是否已初始化
+	// Check if initialized
 	const isInitialized = await skillsInitializer.isInitialized()
 
 	if (!isInitialized && vscode.workspace.workspaceFolders) {
-		// 首次使用，提示初始化
+		// First use, prompt for initialization
 		const action = await vscode.window.showInformationMessage(
-			"检测到这是新项目，是否初始化 Agent Skills？",
+			"This appears to be a new project. Initialize Agent Skills?",
 			{
 				modal: false,
-				detail: "将复制所有内置 Skills 到 .agent/skills/，您可以自由修改。",
+				detail: "This will copy all built-in Skills to .agent/skills/, allowing you to modify them freely.",
 			},
-			"初始化",
-			"稍后",
-			"不再提示",
+			"Initialize",
+			"Later",
+			"Don't Ask Again",
 		)
 
-		if (action === "初始化") {
+		if (action === "Initialize") {
 			try {
 				await vscode.window.withProgress(
 					{
 						location: vscode.ProgressLocation.Notification,
-						title: "初始化 Agent Skills...",
+						title: "Initializing Agent Skills...",
 						cancellable: false,
 					},
 					async (progress) => {
-						progress.report({ increment: 0, message: "复制 Skills 模板..." })
+						progress.report({ increment: 0, message: "Copying Skills templates..." })
 						await skillsInitializer.initializeSkills()
 
-						progress.report({ increment: 100, message: "完成！" })
+						progress.report({ increment: 100, message: "Done!" })
 					},
 				)
 
 				vscode.window
 					.showInformationMessage(
-						"Agent Skills 初始化成功！您现在可以在 .agent/skills/ 中修改它们。",
-						"打开 Skills 目录",
+						"Agent Skills initialized successfully! You can now modify them in .agent/skills/.",
+						"Open Skills Directory",
 					)
 					.then((selection) => {
-						if (selection === "打开 Skills 目录") {
+						if (selection === "Open Skills Directory") {
 							const skillsUri = vscode.Uri.file(
 								path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, ".agent", "skills"),
 							)
@@ -442,15 +442,15 @@ export async function activate(context: vscode.ExtensionContext) {
 						}
 					})
 			} catch (error) {
-				vscode.window.showErrorMessage(`初始化失败: ${error.message}`)
+				vscode.window.showErrorMessage(`Initialization failed: ${error.message}`)
 			}
-		} else if (action === "不再提示") {
-			// 记录用户选择
+		} else if (action === "Don't Ask Again") {
+			// Record user's choice
 			context.globalState.update("skills.dontAskAgain", true)
 		}
 	}
 
-	// 初始化 SkillsManager（只扫描 project 和 personal）
+	// Initialize SkillsManager (only scans project and personal)
 	const skillsManager = SkillsManager.getInstance(context)
 	await skillsManager.initialize()
 
@@ -460,17 +460,17 @@ export async function activate(context: vscode.ExtensionContext) {
 
 ---
 
-## 📋 SkillsManager 简化
+## 📋 SkillsManager Simplification
 
-### 简化后的接口
+### Simplified Interface
 
 ```typescript
 export interface Skill {
-	id: string // 只用目录名："romance"
+	id: string // Only use directory name: "romance"
 	name: string
 	description: string
 	path: string
-	source: "personal" | "project" // ❌ 删除 'extension'
+	source: "personal" | "project" // ❌ Remove 'extension'
 
 	// Optional fields
 	allowedToolGroups?: string[]
@@ -488,21 +488,21 @@ export interface Skill {
 }
 ```
 
-### 简化的 SkillsManager
+### Simplified SkillsManager
 
 ```typescript
 export class SkillsManager {
 	private skills: Map<string, Skill> = new Map()
 
 	/**
-	 * 扫描 Skills（只扫描 project 和 personal）
+	 * Scan Skills (only scans project and personal)
 	 */
 	async scanSkills(): Promise<void> {
 		this.skills.clear()
 
 		const paths = this.getSkillsPaths()
 
-		// 按优先级从低到高扫描（后者覆盖前者）
+		// Scan from low to high priority (latter overrides former)
 		for (const [source, basePath] of paths) {
 			try {
 				await this.scanDirectory(basePath, source)
@@ -513,16 +513,16 @@ export class SkillsManager {
 	}
 
 	/**
-	 * 获取 Skills 路径（只有 2 个）
+	 * Get Skills paths (only 2)
 	 */
 	private getSkillsPaths(): Array<["personal" | "project", string]> {
 		const paths: Array<["personal" | "project", string]> = []
 
-		// 1. Personal skills（优先级低）
+		// 1. Personal skills (low priority)
 		const personalPath = path.join(this.context.globalStorageUri.fsPath, "skills")
 		paths.push(["personal", personalPath])
 
-		// 2. Project skills（优先级高，覆盖 personal）
+		// 2. Project skills (high priority, overrides personal)
 		const workspaceFolders = vscode.workspace.workspaceFolders
 		if (workspaceFolders && workspaceFolders.length > 0) {
 			const projectPath = path.join(workspaceFolders[0].uri.fsPath, ".agent", "skills")
@@ -533,57 +533,57 @@ export class SkillsManager {
 	}
 
 	/**
-	 * 生成 Skill ID（只用目录名）
+	 * Generate Skill ID (use only directory name)
 	 */
 	private generateSkillId(skillPath: string): string {
-		return path.basename(skillPath) // "romance"（不包含 source）
+		return path.basename(skillPath) // "romance" (without source)
 	}
 
 	// ... rest of the implementation (same as v0.13.0 design) ...
 }
 ```
 
-**删除的代码**：
+**Removed Code**:
 
-- ❌ 扫描 extension Skills 的逻辑
-- ❌ `${source}:${dirName}` 的 ID 生成
-- ❌ 三层优先级判断逻辑
+- ❌ Logic for scanning extension Skills
+- ❌ ID generation of `${source}:${dirName}`
+- ❌ Three-tier priority judgment logic
 
 ---
 
-## 🎨 用户体验流程
+## 🎨 User Experience Flow
 
-### 场景 1：首次使用（新项目）
+### Scenario 1: First Use (New Project)
 
 ```
-1. 用户安装 NovelWeave 扩展
+1. User installs the NovelWeave extension
    ↓
-2. 打开一个新项目（没有 .agent/skills/）
+2. Opens a new project (without .agent/skills/)
    ↓
-3. NovelWeave 激活 → 检测到未初始化
+3. NovelWeave activates → Detects it's not initialized
    ↓
-4. 显示提示：
+4. Displays a prompt:
    ┌─────────────────────────────────────────────┐
-   │ 💡 检测到这是新项目，是否初始化 Agent Skills？ │
-   │                                              │
-   │ 将复制所有内置 Skills 到 .agent/skills/，    │
-   │ 您可以自由修改。                              │
-   │                                              │
-   │ [初始化]  [稍后]  [不再提示]                  │
+   │ 💡 This appears to be a new project. Initialize Agent Skills? │
+   │                                             │
+   │ This will copy all built-in Skills to .agent/skills/, │
+   │ allowing you to modify them freely.         │
+   │                                             │
+   │ [Initialize]  [Later]  [Don't Ask Again]     │
    └─────────────────────────────────────────────┘
    ↓
-5. 用户点击"初始化" → 进度通知
+5. User clicks "Initialize" → Progress notification
    ↓
-6. 完成！显示：
+6. Done! Displays:
    ┌─────────────────────────────────────────────┐
-   │ ✅ Agent Skills 初始化成功！                  │
-   │                                              │
-   │ 您现在可以在 .agent/skills/ 中修改它们。      │
-   │                                              │
-   │ [打开 Skills 目录]                           │
+   │ ✅ Agent Skills initialized successfully!     │
+   │                                             │
+   │ You can now modify them in .agent/skills/.  │
+   │                                             │
+   │ [Open Skills Directory]                       │
    └─────────────────────────────────────────────┘
    ↓
-7. 项目结构：
+7. Project structure:
    .agent/
    └── skills/
        ├── README.md
@@ -606,94 +606,94 @@ export class SkillsManager {
                └── SKILL.md
 ```
 
-### 场景 2：修改 Skill
+### Scenario 2: Modifying a Skill
 
 ```
-1. 用户在 VS Code 中打开 .agent/skills/romance/SKILL.md
+1. User opens .agent/skills/romance/SKILL.md in VS Code
    ↓
-2. 直接编辑文件（普通的 Markdown 文件）
+2. Directly edits the file (a normal Markdown file)
    ↓
-3. 修改 frontmatter 或内容
+3. Modifies frontmatter or content
    ---
    name: Romance Novel Conventions
-   description: My customized romance writing guide  ← 修改
-   keywords: [romance, love, 言情小说]
+   description: My customized romance writing guide  ← Modified
+   keywords: [romance, love, romance novel]
    ---
 
-   # 我的言情小说创作规范  ← 修改
+   # My Romance Novel Writing Guidelines  ← Modified
 
-   ## 核心要素（我的风格）  ← 添加
+   ## Core Elements (My Style)  ← Added
    ...
    ↓
-4. 保存文件（Cmd+S / Ctrl+S）
+4. Saves the file (Cmd+S / Ctrl+S)
    ↓
-5. NovelWeave 自动检测文件变化
+5. NovelWeave automatically detects file changes
    ↓
-6. 重新扫描 Skills
+6. Rescans Skills
    ↓
-7. 下次 AI 使用时，使用修改后的版本 ✅
+7. The next time the AI is used, it uses the modified version ✅
 ```
 
-### 场景 3：团队协作
+### Scenario 3: Team Collaboration
 
 ```
-【开发者 A】
-1. 初始化 Skills 到项目
+[Developer A]
+1. Initializes Skills for the project
    ↓
-2. 自定义团队的 Skills（如修改 romance Skill）
+2. Customizes the team's Skills (e.g., modifies the romance Skill)
    ↓
-3. 提交到 Git
+3. Commits to Git
    $ git add .agent/skills/
    $ git commit -m "Custom romance skill for our project"
    $ git push
 
-【开发者 B】
-1. Clone 项目
+[Developer B]
+1. Clones the project
    $ git clone <repo>
    ↓
-2. 打开项目 → NovelWeave 激活
+2. Opens the project → NovelWeave activates
    ↓
-3. 检测到 .agent/skills/ 已存在 → 跳过初始化提示
+3. Detects that .agent/skills/ already exists → Skips initialization prompt
    ↓
-4. 直接使用团队自定义的 Skills ✅
+4. Directly uses the team's customized Skills ✅
    ↓
-5. 如果需要修改 → 直接编辑 → 提交 Git
+5. If modifications are needed → Directly edit → Commit to Git
 ```
 
-### 场景 4：NovelWeave 更新后
+### Scenario 4: After a NovelWeave Update
 
 ```
-1. NovelWeave 发布新版本（如 v0.14.0）
-   - 新增了 "sci-fi" Skill
-   - 改进了 "dialogue-techniques" Skill
+1. NovelWeave releases a new version (e.g., v0.14.0)
+   - Adds a new "sci-fi" Skill
+   - Improves the "dialogue-techniques" Skill
    ↓
-2. 用户更新扩展
+2. User updates the extension
    ↓
-3. 打开项目 → NovelWeave 激活
+3. Opens the project → NovelWeave activates
    ↓
-4. 用户手动执行：NovelWeave: Check for New Skills
+4. User manually executes: NovelWeave: Check for New Skills
    ↓
-5. 显示：
+5. Displays:
    ┌─────────────────────────────────────────────┐
-   │ 💡 发现 1 个新的官方 Skill：                  │
-   │                                              │
-   │  - genre-knowledge/sci-fi                    │
-   │                                              │
-   │ 是否添加到项目？                              │
-   │                                              │
-   │ [添加]  [稍后]  [查看详情]                    │
+   │ 💡 Found 1 new official Skill:              │
+   │                                             │
+   │  - genre-knowledge/sci-fi                   │
+   │                                             │
+   │ Add to the project?                         │
+   │                                             │
+   │ [Add]  [Later]  [View Details]              │
    └─────────────────────────────────────────────┘
    ↓
-6. 用户选择"添加" → 只复制新 Skill
+6. User selects "Add" → Copies only the new Skill
    ↓
-7. 已存在的 Skills 不受影响（用户的修改保留） ✅
+7. Existing Skills are not affected (user's modifications are preserved) ✅
 ```
 
 ---
 
-## 🛠️ 命令注册
+## 🛠️ Command Registration
 
-### 新增命令
+### New Commands
 
 ```typescript
 // src/activate/registerCommands.ts
@@ -701,24 +701,24 @@ export class SkillsManager {
 export function registerCommands({ context, provider }: { context: vscode.ExtensionContext; provider: ClineProvider }) {
 	// ... existing commands ...
 
-	// Skills 初始化命令
+	// Skills initialization command
 	context.subscriptions.push(
 		vscode.commands.registerCommand("novelweave.skills.initialize", async () => {
 			const initializer = new SkillsInitializer(context)
 
 			try {
-				// 检查是否已初始化
+				// Check if already initialized
 				const isInitialized = await initializer.isInitialized()
 
 				if (isInitialized) {
 					const action = await vscode.window.showWarningMessage(
-						"Skills 已经初始化。是否重新初始化（将覆盖现有 Skills）？",
+						"Skills are already initialized. Re-initialize (this will overwrite existing Skills)?",
 						{ modal: true },
-						"重新初始化",
-						"取消",
+						"Re-initialize",
+						"Cancel",
 					)
 
-					if (action !== "重新初始化") {
+					if (action !== "Re-initialize") {
 						return
 					}
 				}
@@ -726,7 +726,7 @@ export function registerCommands({ context, provider }: { context: vscode.Extens
 				await vscode.window.withProgress(
 					{
 						location: vscode.ProgressLocation.Notification,
-						title: "初始化 Agent Skills...",
+						title: "Initializing Agent Skills...",
 						cancellable: false,
 					},
 					async (progress) => {
@@ -735,9 +735,9 @@ export function registerCommands({ context, provider }: { context: vscode.Extens
 				)
 
 				vscode.window
-					.showInformationMessage("Agent Skills 初始化成功！", "打开 Skills 目录")
+					.showInformationMessage("Agent Skills initialized successfully!", "Open Skills Directory")
 					.then((selection) => {
-						if (selection === "打开 Skills 目录") {
+						if (selection === "Open Skills Directory") {
 							const skillsUri = vscode.Uri.file(
 								path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, ".agent", "skills"),
 							)
@@ -745,15 +745,15 @@ export function registerCommands({ context, provider }: { context: vscode.Extens
 						}
 					})
 
-				// 重新扫描 Skills
+				// Rescan Skills
 				await provider.skillsManager?.scanSkills()
 			} catch (error) {
-				vscode.window.showErrorMessage(`初始化失败: ${error.message}`)
+				vscode.window.showErrorMessage(`Initialization failed: ${error.message}`)
 			}
 		}),
 	)
 
-	// 检查新 Skills 命令
+	// Check for new Skills command
 	context.subscriptions.push(
 		vscode.commands.registerCommand("novelweave.skills.checkNew", async () => {
 			const initializer = new SkillsInitializer(context)
@@ -762,22 +762,22 @@ export function registerCommands({ context, provider }: { context: vscode.Extens
 				const newSkills = await initializer.checkForNewSkills()
 
 				if (newSkills.length === 0) {
-					vscode.window.showInformationMessage("没有发现新的官方 Skills。")
+					vscode.window.showInformationMessage("No new official Skills found.")
 					return
 				}
 
 				const action = await vscode.window.showInformationMessage(
-					`发现 ${newSkills.length} 个新的官方 Skills：\n\n${newSkills.join("\n")}\n\n是否添加到项目？`,
+					`Found ${newSkills.length} new official Skills:\n\n${newSkills.join("\n")}\n\nAdd to the project?`,
 					{ modal: true },
-					"添加",
-					"取消",
+					"Add",
+					"Cancel",
 				)
 
-				if (action === "添加") {
+				if (action === "Add") {
 					await vscode.window.withProgress(
 						{
 							location: vscode.ProgressLocation.Notification,
-							title: "添加新 Skills...",
+							title: "Adding new Skills...",
 							cancellable: false,
 						},
 						async (progress) => {
@@ -785,32 +785,32 @@ export function registerCommands({ context, provider }: { context: vscode.Extens
 						},
 					)
 
-					vscode.window.showInformationMessage(`成功添加 ${newSkills.length} 个新 Skills！`)
+					vscode.window.showInformationMessage(`Successfully added ${newSkills.length} new Skills!`)
 
-					// 重新扫描 Skills
+					// Rescan Skills
 					await provider.skillsManager?.scanSkills()
 				}
 			} catch (error) {
-				vscode.window.showErrorMessage(`检查失败: ${error.message}`)
+				vscode.window.showErrorMessage(`Check failed: ${error.message}`)
 			}
 		}),
 	)
 
-	// Skills 刷新命令（保留）
+	// Refresh Skills command (retained)
 	context.subscriptions.push(
 		vscode.commands.registerCommand("novelweave.skills.refresh", async () => {
 			try {
 				await provider.skillsManager?.scanSkills()
-				vscode.window.showInformationMessage("Skills 刷新成功")
+				vscode.window.showInformationMessage("Skills refreshed successfully")
 			} catch (error) {
-				vscode.window.showErrorMessage(`刷新失败: ${error.message}`)
+				vscode.window.showErrorMessage(`Refresh failed: ${error.message}`)
 			}
 		}),
 	)
 }
 ```
 
-### package.json 命令定义
+### package.json Command Definitions
 
 ```json
 {
@@ -838,9 +838,9 @@ export function registerCommands({ context, provider }: { context: vscode.Extens
 
 ---
 
-## 📦 构建配置
+## 📦 Build Configuration
 
-### esbuild 配置（复制模板）
+### esbuild Configuration (Copy Template)
 
 ```javascript
 // src/esbuild.mjs
@@ -855,7 +855,7 @@ const copySkillsPlugin = {
 			const src = path.join(__dirname, "templates/skills")
 			const dest = path.join(__dirname, "dist/templates/skills")
 
-			// 复制 Skills 模板到 dist/
+			// Copy Skills templates to dist/
 			await fs.copy(src, dest, {
 				overwrite: true,
 				errorOnExist: false,
@@ -866,7 +866,7 @@ const copySkillsPlugin = {
 	},
 }
 
-// 添加到 plugins
+// Add to plugins
 export default {
 	// ... other config
 	plugins: [
@@ -876,292 +876,292 @@ export default {
 }
 ```
 
-### .gitignore 更新
+### .gitignore Update
 
 ```bash
 # .gitignore
 
-# 构建产物
+# Build artifacts
 dist/
 
-# 但保留源代码中的 Skills 模板
+# But keep the Skills templates in the source code
 !src/templates/skills/
 ```
 
-### .agent/.gitignore（用户项目）
+### .agent/.gitignore (User's Project)
 
 ```bash
 # .agent/.gitignore
 
-# 跟踪 Skills（团队共享）
+# Track Skills (team sharing)
 !skills/
 
-# 但忽略临时文件
+# But ignore temporary files
 skills/**/*.tmp
 skills/**/.DS_Store
 ```
 
 ---
 
-## 📋 实现计划
+## 📋 Implementation Plan
 
-### Phase 1: 核心初始化功能（Week 1）
+### Phase 1: Core Initialization Functionality (Week 1)
 
-#### Sprint 1.1: SkillsInitializer 实现（3 days）
+#### Sprint 1.1: SkillsInitializer Implementation (3 days)
 
-**任务**：
+**Tasks**:
 
-- [ ] 创建 `SkillsInitializer` 类
-- [ ] 实现 `isInitialized()` 检测逻辑
-- [ ] 实现 `initializeSkills()` 复制逻辑
-- [ ] 实现 `checkForNewSkills()` 对比逻辑
-- [ ] 实现 `addMissingSkills()` 添加逻辑
-- [ ] 单元测试
+- [ ] Create `SkillsInitializer` class
+- [ ] Implement `isInitialized()` detection logic
+- [ ] Implement `initializeSkills()` copy logic
+- [ ] Implement `checkForNewSkills()` comparison logic
+- [ ] Implement `addMissingSkills()` add logic
+- [ ] Unit tests
 
-**交付物**：
+**Deliverables**:
 
 - ✅ `src/services/skills/SkillsInitializer.ts`
 - ✅ `src/services/skills/__tests__/SkillsInitializer.test.ts`
 
-#### Sprint 1.2: 扩展激活集成（2 days）
+#### Sprint 1.2: Extension Activation Integration (2 days)
 
-**任务**：
+**Tasks**:
 
-- [ ] 在 `extension.ts` 中添加首次初始化提示
-- [ ] 实现初始化流程 UI
-- [ ] 处理用户选择（初始化/稍后/不再提示）
-- [ ] 测试首次使用体验
+- [ ] Add first-use initialization prompt in `extension.ts`
+- [ ] Implement initialization flow UI
+- [ ] Handle user choices (Initialize/Later/Don't Ask Again)
+- [ ] Test first-use experience
 
-**交付物**：
+**Deliverables**:
 
-- ✅ 修改 `src/extension.ts`
-- ✅ 首次使用提示流程
+- ✅ Modified `src/extension.ts`
+- ✅ First-use prompt flow
 
-#### Sprint 1.3: SkillsManager 简化（2 days）
+#### Sprint 1.3: SkillsManager Simplification (2 days)
 
-**任务**：
+**Tasks**:
 
-- [ ] 移除 extension Skills 扫描逻辑
-- [ ] 移除 source 前缀生成
-- [ ] 简化为两层优先级（personal → project）
-- [ ] 更新测试用例
+- [ ] Remove extension Skills scanning logic
+- [ ] Remove source prefix generation
+- [ ] Simplify to two-tier priority (personal → project)
+- [ ] Update test cases
 
-**交付物**：
+**Deliverables**:
 
-- ✅ 简化的 `src/services/skills/SkillsManager.ts`
-- ✅ 更新的测试用例
+- ✅ Simplified `src/services/skills/SkillsManager.ts`
+- ✅ Updated test cases
 
-### Phase 2: 命令和 UI（Week 2）
+### Phase 2: Commands and UI (Week 2)
 
-#### Sprint 2.1: 命令注册（2 days）
+#### Sprint 2.1: Command Registration (2 days)
 
-**任务**：
+**Tasks**:
 
-- [ ] 注册 `novelweave.skills.initialize` 命令
-- [ ] 注册 `novelweave.skills.checkNew` 命令
-- [ ] 更新 `package.json` 命令定义
-- [ ] 测试命令执行
+- [ ] Register `novelweave.skills.initialize` command
+- [ ] Register `novelweave.skills.checkNew` command
+- [ ] Update `package.json` command definitions
+- [ ] Test command execution
 
-**交付物**：
+**Deliverables**:
 
-- ✅ 修改 `src/activate/registerCommands.ts`
-- ✅ 修改 `src/package.json`
+- ✅ Modified `src/activate/registerCommands.ts`
+- ✅ Modified `src/package.json`
 
-#### Sprint 2.2: WebView UI 更新（3 days）
+#### Sprint 2.2: WebView UI Update (3 days)
 
-**任务**：
+**Tasks**:
 
-- [ ] 移除"Extension Skills"分组
-- [ ] 只显示 Project 和 Personal Skills
-- [ ] 添加"初始化 Skills"按钮（如未初始化）
-- [ ] 添加"检查新 Skills"按钮
+- [ ] Remove "Extension Skills" group
+- [ ] Only show Project and Personal Skills
+- [ ] Add "Initialize Skills" button (if not initialized)
+- [ ] Add "Check for New Skills" button
 
-**交付物**：
+**Deliverables**:
 
-- ✅ 修改 `webview-ui/src/components/skills/SkillsPanel.tsx`
-- ✅ 更新 UI 逻辑
+- ✅ Modified `webview-ui/src/components/skills/SkillsPanel.tsx`
+- ✅ Updated UI logic
 
-### Phase 3: 内置 Skills 创建（Week 2-3）
+### Phase 3: Built-in Skills Creation (Weeks 2-3)
 
-#### Sprint 3.1: 创建 Skills 模板（4 days）
+#### Sprint 3.1: Create Skills Templates (4 days)
 
-**任务**：
+**Tasks**:
 
-- [ ] 创建 `src/templates/skills/` 目录结构
-- [ ] 从 `novel-writer-skills` 改写核心 Skills：
+- [ ] Create `src/templates/skills/` directory structure
+- [ ] Rewrite core Skills from `novel-writer-skills`:
     - [ ] genre-knowledge/romance
     - [ ] genre-knowledge/mystery
     - [ ] genre-knowledge/fantasy
     - [ ] quality-assurance/consistency-checker
-    - [ ] quality-assurance/novelweave-workflow（全新）
+    - [ ] quality-assurance/novelweave-workflow (new)
     - [ ] writing-techniques/dialogue-techniques
     - [ ] writing-techniques/scene-structure
-- [ ] 创建 Skills README 模板
+- [ ] Create Skills README template
 
-**交付物**：
+**Deliverables**:
 
-- ✅ `src/templates/skills/` 目录及所有 Skills
-- ✅ 至少 7 个核心 Skills
+- ✅ `src/templates/skills/` directory and all Skills
+- ✅ At least 7 core Skills
 
-### Phase 4: 测试和文档（Week 3）
+### Phase 4: Testing and Documentation (Week 3)
 
-#### Sprint 4.1: 端到端测试（2 days）
+#### Sprint 4.1: End-to-End Testing (2 days)
 
-**任务**：
+**Tasks**:
 
-- [ ] 测试首次初始化流程
-- [ ] 测试修改 Skills 流程
-- [ ] 测试团队协作场景
-- [ ] 测试更新检测
+- [ ] Test first-use initialization flow
+- [ ] Test Skill modification flow
+- [ ] Test team collaboration scenarios
+- [ ] Test update detection
 
-**交付物**：
+**Deliverables**:
 
-- ✅ E2E 测试用例
+- ✅ E2E test cases
 
-#### Sprint 4.2: 文档编写（2 days）
+#### Sprint 4.2: Documentation Writing (2 days)
 
-**任务**：
+**Tasks**:
 
-- [ ] 编写用户指南
-- [ ] 编写开发者指南
-- [ ] 更新 README
-- [ ] 创建迁移指南（从 v0.13.0 设计）
+- [ ] Write user guide
+- [ ] Write developer guide
+- [ ] Update README
+- [ ] Create migration guide (from v0.13.0 design)
 
-**交付物**：
+**Deliverables**:
 
 - ✅ `docs/agent-skills-user-guide-v3.md`
 - ✅ `docs/agent-skills-developer-guide.md`
-- ✅ 更新主 README
+- ✅ Updated main README
 
-#### Sprint 4.3: 发布准备（1 day）
+#### Sprint 4.3: Release Preparation (1 day)
 
-**任务**：
+**Tasks**:
 
-- [ ] 更新 CHANGELOG
-- [ ] 准备发布说明
-- [ ] 版本号更新到 v0.13.0
+- [ ] Update CHANGELOG
+- [ ] Prepare release notes
+- [ ] Update version number to v0.13.0
 
-**交付物**：
+**Deliverables**:
 
-- ✅ `CHANGELOG.md` 更新
-- ✅ 发布说明
+- ✅ `CHANGELOG.md` update
+- ✅ Release notes
 
 ---
 
-## 🔄 从 v0.13.0 设计迁移（如果已开发）
+## 🔄 Migration from v0.13.0 Design (If Already Developed)
 
-### 如果已按 v0.13.0 设计实现
+### If Implemented According to v0.13.0 Design
 
-**迁移步骤**：
+**Migration Steps**:
 
-1. **保留的代码**：
-    - ✅ Skill 接口定义（大部分字段）
-    - ✅ SKILL.md 解析逻辑
-    - ✅ 渐进式加载
-    - ✅ System Prompt 集成
-    - ✅ WebView 基础组件
+1. **Retained Code**:
+    - ✅ Skill interface definition (most fields)
+    - ✅ SKILL.md parsing logic
+    - ✅ Progressive loading
+    - ✅ System Prompt integration
+    - ✅ WebView base components
 
-2. **需要修改的代码**：
-    - ⚠️ SkillsManager.scanSkills()（移除 extension 扫描）
-    - ⚠️ generateSkillId()（移除 source 前缀）
-    - ⚠️ getSkillsPaths()（只返回 2 个路径）
+2. **Code to be Modified**:
+    - ⚠️ SkillsManager.scanSkills() (remove extension scanning)
+    - ⚠️ generateSkillId() (remove source prefix)
+    - ⚠️ getSkillsPaths() (return only 2 paths)
 
-3. **需要新增的代码**：
-    - ✅ SkillsInitializer 类
-    - ✅ extension.ts 中的初始化提示
-    - ✅ 新命令注册
+3. **Code to be Added**:
+    - ✅ SkillsInitializer class
+    - ✅ Initialization prompt in extension.ts
+    - ✅ New command registration
 
-4. **需要删除的代码**：
-    - ❌ 三层优先级逻辑
-    - ❌ Extension Skills 相关代码
+4. **Code to be Deleted**:
+    - ❌ Three-tier priority logic
+    - ❌ Extension Skills related code
 
-### 迁移检查清单
+### Migration Checklist
 
-- [ ] 创建 SkillsInitializer
-- [ ] 简化 SkillsManager（删除 extension 相关）
-- [ ] 修改 Skill ID 生成（去掉 source 前缀）
-- [ ] 更新扩展激活逻辑（添加初始化提示）
-- [ ] 注册新命令
-- [ ] 更新 WebView UI（移除 Extension Skills 分组）
-- [ ] 创建 Skills 模板目录
-- [ ] 更新构建配置（复制模板）
-- [ ] 更新测试用例
-- [ ] 更新文档
+- [ ] Create SkillsInitializer
+- [ ] Simplify SkillsManager (remove extension related)
+- [ ] Modify Skill ID generation (remove source prefix)
+- [ ] Update extension activation logic (add initialization prompt)
+- [ ] Register new commands
+- [ ] Update WebView UI (remove Extension Skills group)
+- [ ] Create Skills template directory
+- [ ] Update build configuration (copy templates)
+- [ ] Update test cases
+- [ ] Update documentation
 
 ---
 
 ## ❓ FAQ
 
-### Q: v0.14.0 与 v0.13.0 设计的主要区别？
+### Q: What's the main difference between v0.14.0 and v0.13.0 design?
 
-**A**: v0.14.0 采用**项目初始化模式**，内置 Skills 是模板而非运行时依赖：
+**A**: v0.14.0 adopts a **project initialization model**, where built-in Skills are templates, not runtime dependencies:
 
-- ✅ 用户完全掌控 Skills（可修改）
-- ✅ 架构更简单（只有 2 层，不是 3 层）
-- ✅ 符合业界最佳实践（学习 Cursor/Claude Code）
+- ✅ Users have full control over Skills (modifiable)
+- ✅ The architecture is simpler (only 2 tiers, not 3)
+- ✅ Follows industry best practices (learning from Cursor/Claude Code)
 
-### Q: 为什么不能直接使用 dist/ 中的 Skills？
+### Q: Why can't we use Skills directly from dist/?
 
-**A**: `dist/` 是构建产物，每次 `pnpm build` 都会覆盖：
+**A**: `dist/` is a build artifact and is overwritten with every `pnpm build`:
 
-- ❌ 用户修改会丢失
-- ❌ 无法 Git 版本控制（dist/ 在 .gitignore 中）
-- ❌ 不支持团队协作
+- ❌ User modifications would be lost
+- ❌ Cannot be version controlled by Git (dist/ is in .gitignore)
+- ❌ Does not support team collaboration
 
-### Q: 如果用户不想初始化怎么办？
+### Q: What if the user doesn't want to initialize?
 
-**A**: 可以选择"稍后"或"不再提示"：
+**A**: They can choose "Later" or "Don't Ask Again":
 
-- 选择"稍后" → 下次打开项目时再提示
-- 选择"不再提示" → 记录设置，不再自动提示
-- 随时可以手动执行 `NovelWeave: Initialize Agent Skills` 命令
+- Choose "Later" → Prompt again the next time the project is opened
+- Choose "Don't Ask Again" → Record the setting, no longer prompt automatically
+- Can manually execute the `NovelWeave: Initialize Agent Skills` command at any time
 
-### Q: 个人 Skills（globalStorage）还有必要吗？
+### Q: Are personal Skills (globalStorage) still necessary?
 
-**A**: 有！用于**跨项目**的个人模板：
+**A**: Yes! For **cross-project** personal templates:
 
-- 例如："我的写作风格"（适用于所有项目）
-- 例如："我的审稿清单"（个人习惯）
-- 不适合放在项目中（太个人化，团队可能不需要）
+- e.g., "My writing style" (applies to all projects)
+- e.g., "My proofreading checklist" (personal habit)
+- Not suitable to be placed in a project (too personal, the team may not need it)
 
-### Q: 如果团队成员修改了同一个 Skill 怎么办？
+### Q: What if team members modify the same Skill?
 
-**A**: 和普通代码一样，通过 Git 解决冲突：
+**A**: Just like regular code, resolve conflicts via Git:
 
 ```bash
-# 两人都修改了 romance/SKILL.md
+# Both modified romance/SKILL.md
 $ git pull
 Auto-merging .agent/skills/romance/SKILL.md
 CONFLICT (content): Merge conflict in .agent/skills/romance/SKILL.md
 
-# 手动解决冲突
+# Manually resolve the conflict
 $ code .agent/skills/romance/SKILL.md
-# 编辑，选择保留的内容
+# Edit, choose what to keep
 
 $ git add .agent/skills/romance/SKILL.md
 $ git commit -m "Merge romance skill changes"
 ```
 
-### Q: NovelWeave 更新会覆盖我的 Skills 吗？
+### Q: Will NovelWeave updates overwrite my Skills?
 
-**A**: **绝对不会**！
+**A**: **Absolutely not**!
 
-- ✅ 项目中的 Skills（.agent/skills/）完全由用户掌控
-- ✅ 扩展更新只影响模板（dist/templates/skills/）
-- ✅ 新 Skills 需要手动添加（通过"检查新 Skills"命令）
+- ✅ Project Skills (.agent/skills/) are completely under user control
+- ✅ Extension updates only affect the templates (dist/templates/skills/)
+- ✅ New Skills need to be added manually (via the "Check for New Skills" command)
 
-### Q: 可以只初始化部分 Skills 吗？
+### Q: Can I initialize only some Skills?
 
-**A**: v0.14.0 初版是"全部初始化"，但可以：
+**A**: The initial version of v0.14.0 is "initialize all", but you can:
 
-- 初始化后删除不需要的 Skills
-- 或者手动从模板复制需要的 Skills
+- Delete unnecessary Skills after initialization
+- Or manually copy the Skills you need from the template
 
-未来版本可能添加"选择性初始化"功能。
+Future versions may add a "selective initialization" feature.
 
-### Q: 如何备份我的 Skills？
+### Q: How do I back up my Skills?
 
-**A**: Skills 在项目中，随 Git 自动备份：
+**A**: Skills are in the project and are automatically backed up with Git:
 
 ```bash
 $ git add .agent/skills/
@@ -1171,41 +1171,41 @@ $ git push
 
 ---
 
-## 📊 设计验证
+## 📊 Design Validation
 
-### 与 Claude Code 对齐
+### Alignment with Claude Code
 
-| 特性             | Claude Code   | NovelWeave v0.14.0 | 一致性 |
-| ---------------- | ------------- | ------------------ | ------ |
-| **初始化到项目** | ✅ `.claude/` | ✅ `.agent/`       | ✅     |
-| **用户完全掌控** | ✅            | ✅                 | ✅     |
-| **Git 版本控制** | ✅            | ✅                 | ✅     |
-| **团队共享**     | ✅            | ✅                 | ✅     |
-| **可自由修改**   | ✅            | ✅                 | ✅     |
-| **AI 自主激活**  | ✅            | ✅                 | ✅     |
-| **不自动更新**   | ✅            | ✅                 | ✅     |
+| Feature | Claude Code | NovelWeave v0.14.0 | Consistency |
+| --- | --- | --- | --- |
+| **Initialize to project** | ✅ `.claude/` | ✅ `.agent/` | ✅ |
+| **User has full control** | ✅ | ✅ | ✅ |
+| **Git version control** | ✅ | ✅ | ✅ |
+| **Team sharing** | ✅ | ✅ | ✅ |
+| **Freely modifiable** | ✅ | ✅ | ✅ |
+| **AI autonomous activation** | ✅ | ✅ | ✅ |
+| **No automatic updates** | ✅ | ✅ | ✅ |
 
-### 设计原则检查
+### Design Principle Check
 
-- ✅ **用户控制权优先**：用户完全掌控项目 Skills
-- ✅ **简单性**：两层架构，易于理解
-- ✅ **Git 友好**：Skills 在项目中，自然支持版本控制
-- ✅ **团队协作**：通过 Git 共享，无需额外机制
-- ✅ **最佳实践**：学习成熟产品（Cursor/Claude Code）
-- ✅ **向后兼容**：保留个人 Skills（globalStorage）支持
-- ✅ **渐进增强**：可选的初始化，可选的更新检测
+- ✅ **User control first**: Users have full control over project Skills
+- ✅ **Simplicity**: Two-tier architecture, easy to understand
+- ✅ **Git-friendly**: Skills are in the project, naturally supporting version control
+- ✅ **Team collaboration**: Shared via Git, no extra mechanism needed
+- ✅ **Best practices**: Learning from mature products (Cursor/Claude Code)
+- ✅ **Backward compatibility**: Retain support for personal Skills (globalStorage)
+- ✅ **Progressive enhancement**: Optional initialization, optional update check
 
 ---
 
-## 📚 附录
+## 📚 Appendix
 
-### A. 完整的目录结构
+### A. Complete Directory Structure
 
 ```
-novel/                                      # NovelWeave 项目
+novel/                                      # NovelWeave project
 ├── src/
 │   ├── templates/
-│   │   └── skills/                        # Skills 模板（源代码）
+│   │   └── skills/                        # Skills templates (source code)
 │   │       ├── README.md
 │   │       ├── genre-knowledge/
 │   │       │   ├── romance/
@@ -1227,117 +1227,117 @@ novel/                                      # NovelWeave 项目
 │   │
 │   ├── services/
 │   │   └── skills/
-│   │       ├── SkillsManager.ts           # 简化版
-│   │       ├── SkillsInitializer.ts       # 新增
+│   │       ├── SkillsManager.ts           # Simplified version
+│   │       ├── SkillsInitializer.ts       # New
 │   │       └── __tests__/
 │   │
 │   └── dist/
 │       └── templates/
-│           └── skills/                    # 复制自 src/templates/skills/
+│           └── skills/                    # Copied from src/templates/skills/
 │
-└── esbuild.mjs                            # 构建时复制 Skills
+└── esbuild.mjs                            # Copy Skills during build
 
 ---
 
-用户项目/                                  # 用户的小说项目
+user-project/                             # User's novel project
 ├── .agent/
-│   └── skills/                           # 从模板初始化，用户完全掌控
+│   └── skills/                           # Initialized from template, user has full control
 │       ├── README.md
 │       ├── genre-knowledge/
 │       │   └── romance/
-│       │       └── SKILL.md              # 可修改 ✅
+│       │       └── SKILL.md              # Modifiable ✅
 │       └── ...
 │
-└── .git/                                 # Git 跟踪 .agent/skills/
+└── .git/                                 # Git tracks .agent/skills/
 
 ---
 
-globalStorage/                            # 跨项目的个人 Skills
+globalStorage/                            # Cross-project personal Skills
 └── skills/
     └── my-writing-style/
         └── SKILL.md
 ```
 
-### B. Skill ID 对比
+### B. Skill ID Comparison
 
-**v0.13.0 设计（错误）**：
+**v0.13.0 Design (Wrong)**:
 
 ```typescript
-// 三个不同的 Skill，无法覆盖
+// Three different Skills, cannot be overridden
 skills.set("extension:romance", extensionRomanceSkill)
 skills.set("project:romance", projectRomanceSkill)
 skills.set("personal:romance", personalRomanceSkill)
 
-// 结果：存在 3 个 romance Skill
+// Result: 3 romance Skills exist
 ```
 
-**v0.14.0（正确）**：
+**v0.14.0 (Correct)**:
 
 ```typescript
-// 同名自动覆盖（Map 特性）
-skills.set("romance", personalRomanceSkill) // 先扫描 personal
-skills.set("romance", projectRomanceSkill) // 后扫描 project，覆盖
+// Same name automatically overrides (Map feature)
+skills.set("romance", personalRomanceSkill) // Scan personal first
+skills.set("romance", projectRomanceSkill) // Scan project later, overrides
 
-// 结果：只有 1 个 romance Skill（project 版本）
+// Result: Only 1 romance Skill (the project version)
 ```
 
 ---
 
-## ✅ 验收标准
+## ✅ Acceptance Criteria
 
-### 核心功能
+### Core Functionality
 
-- [ ] ✅ 首次使用时自动提示初始化
-- [ ] ✅ 初始化成功复制所有 Skills 到 `.agent/skills/`
-- [ ] ✅ 用户可以直接修改项目 Skills
-- [ ] ✅ 项目 Skills 覆盖个人 Skills
-- [ ] ✅ Skill ID 只用目录名（无 source 前缀）
-- [ ] ✅ 不再扫描 dist/templates/skills/（仅模板）
+- [ ] ✅ Automatically prompts for initialization on first use
+- [ ] ✅ Successful initialization copies all Skills to `.agent/skills/`
+- [ ] ✅ User can directly modify project Skills
+- [ ] ✅ Project Skills override personal Skills
+- [ ] ✅ Skill ID uses only the directory name (no source prefix)
+- [ ] ✅ No longer scans dist/templates/skills/ (only templates)
 
-### 命令
+### Commands
 
-- [ ] ✅ `NovelWeave: Initialize Agent Skills` 命令工作正常
-- [ ] ✅ `NovelWeave: Check for New Skills` 命令工作正常
-- [ ] ✅ 已初始化时再次初始化会警告
+- [ ] ✅ `NovelWeave: Initialize Agent Skills` command works correctly
+- [ ] ✅ `NovelWeve: Check for New Skills` command works correctly
+- [ ] ✅ Re-initializing when already initialized will show a warning
 
-### 用户体验
+### User Experience
 
-- [ ] ✅ 首次使用提示清晰易懂
-- [ ] ✅ 初始化进度显示
-- [ ] ✅ 初始化成功后可打开 Skills 目录
-- [ ] ✅ 修改 Skills 后立即生效（重新扫描）
+- [ ] ✅ First-use prompt is clear and easy to understand
+- [ ] ✅ Initialization progress is displayed
+- [ ] ✅ The Skills directory can be opened after successful initialization
+- [ ] ✅ Changes to Skills take effect immediately (rescan)
 
-### 团队协作
+### Team Collaboration
 
-- [ ] ✅ `.agent/skills/` 可提交到 Git
-- [ ] ✅ 团队成员 clone 后直接使用
-- [ ] ✅ Skills 冲突可通过 Git 解决
+- [ ] ✅ `.agent/skills/` can be committed to Git
+- [ ] ✅ Team members can use it directly after cloning
+- [ ] ✅ Skill conflicts can be resolved via Git
 
-### 文档
+### Documentation
 
-- [ ] ✅ PRD v0.14.0 完整清晰
-- [ ] ✅ 用户指南详细
-- [ ] ✅ 开发者指南完整
-- [ ] ✅ 从 v0.13.0 设计迁移指南
-
----
-
-## 📝 总结
-
-v0.14.0 通过采用**项目初始化模式**，彻底解决了 v0.13.0 设计的缺陷：
-
-1. ✅ **用户完全掌控**：Skills 在项目中，可自由修改
-2. ✅ **架构简化**：两层结构，易于理解
-3. ✅ **Git 友好**：天然支持版本控制和团队协作
-4. ✅ **符合最佳实践**：学习 Cursor/Claude Code 成熟模式
-5. ✅ **向后兼容**：保留个人 Skills 支持
-
-这是一个**更正确、更简单、更强大**的设计。
+- [ ] ✅ PRD v0.14.0 is complete and clear
+- [ ] ✅ User guide is detailed
+- [ ] ✅ Developer guide is complete
+- [ ] ✅ Migration guide from v0.13.0 design
 
 ---
 
-**文档结束**
+## 📝 Summary
 
-_本 PRD 基于 v0.13.0 设计的经验教训，采用项目初始化模式重新设计_  
-_参考：Cursor、Claude Code 的最佳实践_  
-_如有疑问，请联系: WordFlow Lab Team_
+v0.14.0, by adopting the **project initialization model**, completely resolves the flaws in the v0.13.0 design:
+
+1. ✅ **User has full control**: Skills are in the project, can be freely modified
+2. ✅ **Simplified architecture**: Two-tier structure, easy to understand
+3. ✅ **Git-friendly**: Naturally supports version control and team collaboration
+4. ✅ **Follows best practices**: Learns from mature models like Cursor/Claude Code
+5. ✅ **Backward compatible**: Retains support for personal Skills
+
+This is a **more correct, simpler, and more powerful** design.
+
+---
+
+**End of Document**
+
+_This PRD is redesigned based on the lessons learned from the v0.13.0 design, adopting a project initialization model._
+_References: Best practices from Cursor, Claude Code_
+_If you have any questions, please contact: WordFlow Lab Team_

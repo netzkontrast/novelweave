@@ -1,126 +1,126 @@
 ---
-description: 管理和验证故事时间线
-argument-hint: [add | check | show | sync]
+description: "Manage and validate the story timeline."
+argument-hint: "[add | check | show | sync]"
 ---
 
-# 时间线管理
+# Timeline Management
 
-维护故事的时间轴，确保时间逻辑的一致性。
+Maintain the story's timeline to ensure chronological consistency.
 
-用户输入：$ARGUMENTS
+User Input: $ARGUMENTS
 
-## 项目结构检查
+## Project Structure Check
 
-首先确保项目目录结构存在。使用 `execute_command` 工具执行：
+First, ensure the project directory structure exists. Use the `execute_command` tool to execute:
 
 ```bash
 mkdir -p memory stories spec/tracking
 ```
 
-## 功能
+## Features
 
-1. **时间记录** - 追踪每个章节的时间点
-2. **并行事件** - 管理同时发生的多线剧情
-3. **历史对照** - 与真实历史事件对比（历史小说）
-4. **逻辑验证** - 检查时间跨度的合理性
+1.  **Time Logging** - Track the time point of each chapter.
+2.  **Parallel Events** - Manage multiple plotlines happening simultaneously.
+3.  **Historical Comparison** - Compare with real historical events (for historical novels).
+4.  **Logical Validation** - Check the reasonableness of time spans.
 
-## 使用方法
+## Usage
 
-支持以下操作：
+The following operations are supported:
 
-- `add` - 添加时间节点
-- `check` - 验证时间连续性
-- `show` - 显示时间线概览
-- `sync` - 同步并行事件
+-   `add` - Add a time node.
+-   `check` - Validate time continuity.
+-   `show` - Display a timeline overview.
+-   `sync` - Synchronize parallel events.
 
-## 执行步骤
+## Execution Steps
 
-### 1. 加载时间线数据
+### 1. Load Timeline Data
 
-使用 `read_file` 工具读取 `spec/tracking/timeline.json`：
+Use the `read_file` tool to read `spec/tracking/timeline.json`:
 
-- 如果文件存在，加载现有时间线数据
-- 如果文件不存在，建议先运行 `/track-init` 初始化追踪系统
+-   If the file exists, load the existing timeline data.
+-   If the file does not exist, recommend running `/track-init` first to initialize the tracking system.
 
-### 2. 深度检查 (--check)
+### 2. Deep Check (`--check`)
 
-在 `--check` 模式下，执行与脚本等价的规则化检查，并输出 Checklist：
+In `--check` mode, perform a rule-based check equivalent to the script and output a checklist:
 
-1. 文件完整性
+1.  **File Integrity**
 
-- CHK001 timeline.json 存在且格式有效
+    -   CHK001 `timeline.json` exists and is in valid format.
 
-2. 时间设定
+2.  **Time Settings**
 
-- CHK002 已设置故事起始时间：storyTime.start
-- CHK003 已设置当前故事时间：storyTime.current
+    -   CHK002 Story start time is set: `storyTime.start`.
+    -   CHK003 Current story time is set: `storyTime.current`.
 
-3. 事件记录
+3.  **Event Records**
 
-- CHK004 已记录时间事件（events.length > 0）
-- CHK005 时间事件按章节升序排列（按 chapter 递增，无乱序）
+    -   CHK004 Time events have been recorded (`events.length > 0`).
+    -   CHK005 Time events are sorted in ascending order by chapter (incrementing `chapter`, no disorder).
 
-4. 并行事件
+4.  **Parallel Events**
 
-- CHK006 并行事件时间点记录合理（parallelEvents.timepoints 可为空）
+    -   CHK006 Parallel event time points are recorded logically (`parallelEvents.timepoints` can be empty).
 
-5. 记录检查结果（可选）
+5.  **Record Check Results (Optional)**
 
-- 将检查时间写入 `lastChecked`
-- 将乱序数量写入 `anomalies.lastCheckIssues`
+    -   Write the check time to `lastChecked`.
+    -   Write the number of anomalies to `anomalies.lastCheckIssues`.
 
-Checklist 输出参考：
-
-```
-# 时间线检查 Checklist
-检查对象: spec/tracking/timeline.json
-记录事件数: [N]
-
-- [x] CHK001 timeline.json 存在且格式有效
-- [x] CHK002 故事起始时间已设定（...）
-- [x] CHK003 当前故事时间已更新（...）
-- [x] CHK004 已记录时间事件（N 个）
-- [x] CHK005 时间事件按章节有序排列
-- [ ] CHK006 并行事件时间点已记录（K 个/无记录）
-
-后续行动...
-```
-
-## 时间线数据
-
-时间线信息存储在 `spec/tracking/timeline.json` 中：
-
-- 故事内时间（年/月/日）
-- 章节对应关系
-- 重要事件标记
-- 时间跨度计算
-
-## 示例输出
+Checklist output reference:
 
 ```
-📅 故事时间线
+# Timeline Check Checklist
+Object: spec/tracking/timeline.json
+Number of Recorded Events: [N]
+
+- [x] CHK001 timeline.json exists and is in valid format.
+- [x] CHK002 Story start time is set (...).
+- [x] CHK003 Current story time has been updated (...).
+- [x] CHK004 Time events have been recorded (N events).
+- [x] CHK005 Time events are ordered by chapter.
+- [ ] CHK006 Parallel event time points have been recorded (K events/no record).
+
+Next Actions...
+```
+
+## Timeline Data
+
+Timeline information is stored in `spec/tracking/timeline.json`:
+
+-   In-story time (year/month/day).
+-   Chapter correspondence.
+-   Important event markers.
+-   Time span calculations.
+
+## Example Output
+
+```
+📅 Story Timeline
 ━━━━━━━━━━━━━━━━━━━━
-当前时间：万历三十年春
+Current Time: Spring, 30th year of the Wanli reign
 
-第1章  | 万历二十九年冬月 | 穿越事件
-第4章  | 万历三十年正月   | 北上赴考
-第6章  | 万历三十年二月   | 会试
-第8章  | 万历三十年三月   | 殿试
-第61章 | 万历三十年四月   | [待写]
+Chapter 1  | Winter, 29th year of Wanli | Transmigration event
+Chapter 4  | First month, 30th year of Wanli | Travels north for the exam
+Chapter 6  | Second month, 30th year of Wanli | Metropolitan examination
+Chapter 8  | Third month, 30th year of Wanli | Palace examination
+Chapter 61 | Fourth month, 30th year of Wanli | [To be written]
 
-⏱️ 时间跨度：5个月
-🔄 并行事件：日本入侵朝鲜
+⏱️ Time Span: 5 months
+🔄 Parallel Event: Japanese invasion of Korea
 ```
 
-## 完成提示 + 下一步
+## Completion Prompt + Next Steps
 
-在聊天中输出：
+Output in chat:
 
 ```
-✅ 时间线处理完成（show/add/check/sync）
+✅ Timeline processing complete (show/add/check/sync)
 ```
 
-建议：
+Recommendations:
 
-- 如发现乱序或时间节点缺失 → 在 `/plan` 或 `/tasks` 中补全相关章节与事件
-- 运行 `/track --check` 做综合一致性检查
+-   If disorder or missing time nodes are found → Complete the relevant chapters and events in `/plan` or `/tasks`.
+-   Run `/track --check` for a comprehensive consistency check.

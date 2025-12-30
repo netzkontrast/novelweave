@@ -1,162 +1,162 @@
 ---
-description: 初始化追踪系统，基于故事大纲设置追踪数据
+description: "Initialize the tracking system, setting up tracking data based on the story outline."
 ---
 
-# 初始化追踪系统
+# Initialize Tracking System
 
-基于已创建的故事规格和创作计划，初始化所有追踪数据文件。
+Initialize all tracking data files based on the created story specifications and creative plan.
 
-用户输入：$ARGUMENTS
+User Input: $ARGUMENTS
 
-## 项目结构检查
+## Project Structure Check
 
-首先确保项目目录结构存在。使用 `execute_command` 工具执行：
+First, ensure the project directory structure exists. Use the `execute_command` tool to execute:
 
 ```bash
 mkdir -p memory stories spec/tracking
 ```
 
-## 使用时机
+## When to Use
 
-在完成 `/specify` 和 `/plan` 之后，开始写作之前执行此命令。
+Execute this command after completing `/specify` and `/plan`, before starting to write.
 
-## 初始化流程
+## Initialization Flow
 
-### 1. 读取基础数据
+### 1. Read Base Data
 
-使用 `read_file` 工具读取必要文件：
+Use the `read_file` tool to read the necessary files:
 
-- 读取规格文件 `stories/*/specification.md` 获取故事设定
-- 读取创作计划 `stories/*/creative-plan.md` 获取章节规划
-- 读取任务清单 `stories/*/tasks.md` 获取任务信息
+-   Read the specification file `stories/*/specification.md` to get the story settings.
+-   Read the creative plan `stories/*/creative-plan.md` to get the chapter plan.
+-   Read the task list `stories/*/tasks.md` to get task information.
 
-### 2. 加载追踪模板
+### 2. Load Tracking Templates
 
-**重要**：首先加载扩展内置的追踪模板，作为结构参考。
+**Important**: First, load the extension's built-in tracking templates as a structural reference.
 
-使用 `read_file` 工具读取以下模板文件：
+Use the `read_file` tool to read the following template files:
 
-1. **情节追踪模板**：
-    - 扩展路径：`templates/novel-tracking/plot-tracker.json`
-2. **时间线模板**：
-    - 扩展路径：`templates/novel-tracking/timeline.json`
-3. **角色关系模板**：
-    - 扩展路径：`templates/novel-tracking/relationships.json`
-4. **角色状态模板**：
-    - 扩展路径：`templates/novel-tracking/character-state.json`
-5. **验证规则模板**：
-    - 扩展路径：`templates/novel-tracking/validation-rules.json`
+1.  **Plot Tracking Template**:
+    -   Extension path: `templates/novel-tracking/plot-tracker.json`
+2.  **Timeline Template**:
+    -   Extension path: `templates/novel-tracking/timeline.json`
+3.  **Character Relationships Template**:
+    -   Extension path: `templates/novel-tracking/relationships.json`
+4.  **Character State Template**:
+    -   Extension path: `templates/novel-tracking/character-state.json`
+5.  **Validation Rules Template**:
+    -   Extension path: `templates/novel-tracking/validation-rules.json`
 
-### 3. 初始化追踪文件
+### 3. Initialize Tracking Files
 
-**重要**：基于加载的模板，结合 `specification.md` 第五章的线索管理规格，生成初始追踪数据。
+**Important**: Based on the loaded templates and in conjunction with the clue management specifications in `specification.md`, Chapter 5, generate the initial tracking data.
 
-创建或更新 `spec/tracking/plot-tracker.json`：
+Create or update `spec/tracking/plot-tracker.json`:
 
-- 使用模板作为基础结构
-- 从 `specification.md 5.1节` 读取所有线索定义并填充
-- 从 `specification.md 5.3节` 读取所有交汇点
-- 从 `specification.md 5.4节` 读取所有伏笔
-- 从 `creative-plan.md` 读取章节段的线索分布
-- 设置当前状态（假设尚未开始写作）
+-   Use the template as the base structure.
+-   Read all clue definitions from `specification.md`, section 5.1, and populate them.
+-   Read all intersection points from `specification.md`, section 5.3.
+-   Read all foreshadowing from `specification.md`, section 5.4.
+-   Read the clue distribution for chapter segments from `creative-plan.md`.
+-   Set the current state (assuming writing has not yet begun).
 
-**生成的 plot-tracker.json 示例**：
+**Generated `plot-tracker.json` Example**:
 
 ```json
 {
-	"novel": "[从specification.md读取故事名称]",
+	"novel": "[Read story name from specification.md]",
 	"lastUpdated": "[YYYY-MM-DD]",
 	"currentState": {
 		"chapter": 0,
 		"volume": 1,
-		"mainPlotStage": "[初始阶段]"
+		"mainPlotStage": "[Initial Stage]"
 	},
 	"plotlines": {
 		"main": {
-			"name": "[主线名称]",
+			"name": "[Main Plot Name]",
 			"status": "active",
-			"currentNode": "[起点]",
+			"currentNode": "[Starting Point]",
 			"completedNodes": [],
-			"upcomingNodes": "[从交汇点和章节规划读取]"
+			"upcomingNodes": "[Read from intersection points and chapter plan]"
 		},
 		"subplots": [
 			{
-				"id": "[从5.1读取，如PL-01]",
-				"name": "[线索名称]",
-				"type": "[主线/支线/主线支撑]",
+				"id": "[Read from 5.1, e.g., PL-01]",
+				"name": "[Clue Name]",
+				"type": "[Main/Subplot/Main-support]",
 				"priority": "[P0/P1/P2]",
 				"status": "[active/dormant]",
-				"plannedStart": "[起始章节]",
-				"plannedEnd": "[结束章节]",
-				"currentNode": "[当前节点]",
+				"plannedStart": "[Starting Chapter]",
+				"plannedEnd": "[Ending Chapter]",
+				"currentNode": "[Current Node]",
 				"completedNodes": [],
-				"upcomingNodes": "[从交汇点表读取]",
-				"intersectionsWith": "[从5.3交汇点表读取相关线索]",
-				"activeChapters": "[从5.2节奏规划读取]"
+				"upcomingNodes": "[Read from intersection table]",
+				"intersectionsWith": "[Read related clues from 5.3 intersection table]",
+				"activeChapters": "[Read from 5.2 pacing plan]"
 			}
 		]
 	},
 	"foreshadowing": [
 		{
-			"id": "[从5.4读取，如F-001]",
-			"content": "[伏笔内容]",
-			"planted": { "chapter": null, "description": "[埋设说明]" },
+			"id": "[Read from 5.4, e.g., F-001]",
+			"content": "[Foreshadowing content]",
+			"planted": { "chapter": null, "description": "[Planting description]" },
 			"hints": [],
-			"plannedReveal": { "chapter": "[揭晓章节]", "description": "[揭晓方式]" },
+			"plannedReveal": { "chapter": "[Reveal Chapter]", "description": "[Reveal method]" },
 			"status": "planned",
 			"importance": "[high/medium/low]",
-			"relatedPlotlines": "[涉及的线索ID列表]"
+			"relatedPlotlines": "[List of involved clue IDs]"
 		}
 	],
 	"intersections": [
 		{
-			"id": "[从5.3读取，如X-001]",
-			"chapter": "[交汇章节]",
-			"plotlines": "[涉及的线索ID列表]",
-			"content": "[交汇内容]",
+			"id": "[Read from 5.3, e.g., X-001]",
+			"chapter": "[Intersection Chapter]",
+			"plotlines": "[List of involved clue IDs]",
+			"content": "[Intersection content]",
 			"status": "upcoming",
-			"impact": "[预期效果]"
+			"impact": "[Expected effect]"
 		}
 	]
 }
 ```
 
-创建或更新 `spec/tracking/timeline.json`：
+Create or update `spec/tracking/timeline.json`:
 
-- 根据章节规划设置时间节点
-- 标记重要时间事件
+-   Set time nodes according to the chapter plan.
+-   Mark important time events.
 
-创建或更新 `spec/tracking/relationships.json`：
+Create or update `spec/tracking/relationships.json`:
 
-- 从角色设定提取初始关系
-- 设置派系分组
+-   Extract initial relationships from character settings.
+-   Set up faction groups.
 
-创建或更新 `spec/tracking/character-state.json`：
+Create or update `spec/tracking/character-state.json`:
 
-- 初始化角色状态
-- 设置起始位置
+-   Initialize character states.
+-   Set starting positions.
 
-3. **生成追踪报告**
-   显示初始化结果，确认追踪系统就绪
+3.  **Generate Tracking Report**
+    Display the initialization results to confirm that the tracking system is ready.
 
-## 智能关联
+## Smart Association
 
-- 根据写作方法自动设置检查点
-- 英雄之旅：12个阶段的追踪点
-- 三幕结构：三幕转折点
-- 七点结构：7个关键节点
+-   Automatically set checkpoints based on the writing method.
+-   Hero's Journey: 12 tracking points for the stages.
+-   Three-Act Structure: Turning points for the three acts.
+-   Seven-Point Structure: 7 key nodes.
 
-追踪系统初始化后，后续写作会自动更新这些数据。
+After the tracking system is initialized, subsequent writing will automatically update this data.
 
-## 完成提示 + 下一步
+## Completion Prompt + Next Steps
 
-在聊天中输出：
+Output in chat:
 
 ```
-✅ 追踪系统已初始化；已生成 spec/tracking/*.json
+✅ Tracking system has been initialized; spec/tracking/*.json have been generated.
 ```
 
-建议：
+Recommendations:
 
-- 运行 `/track --check` 查看综合追踪与一致性
-- 开始 `/write` 并按任务推进
+-   Run `/track --check` to view comprehensive tracking and consistency.
+-   Start `/write` and proceed with tasks.

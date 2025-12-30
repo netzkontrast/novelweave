@@ -1,1124 +1,1120 @@
 ---
-description: 智能分析：自动选择框架分析（write前）或内容分析（write后）
-argument-hint: [--type=framework|content]
+description: "Intelligent Analysis: Automatically selects framework analysis (before write) or content analysis (after write)."
+argument-hint: "[--type=framework|content]"
 ---
 
-⚠️ **执行提醒**：以下是你需要执行的任务指令，不是要显示给用户的内容。你需要：
+⚠️ **Execution Reminder**: The following are task instructions for you to execute, not content to be displayed to the user. You need to:
 
-1. 自动检测创作阶段（章节数）
-2. 执行实际的分析（框架或内容）
-3. 生成详细的分析报告
-4. 保存分析报告（可选）
-5. 在聊天中输出分析摘要和改进建议
+1.  Automatically detect the creation stage (number of chapters).
+2.  Perform the actual analysis (framework or content).
+3.  Generate a detailed analysis report.
+4.  Save the analysis report (optional).
+5.  Output the analysis summary and improvement suggestions in the chat.
 
-对小说项目进行智能化综合分析。根据当前创作阶段，自动选择执行**框架一致性分析**（write 之前）或**内容质量分析**（write 之后）。
+Perform an intelligent comprehensive analysis of the novel project. Depending on the current creation stage, automatically choose to perform either **Framework Consistency Analysis** (before writing) or **Content Quality Analysis** (after writing).
 
-用户输入：$ARGUMENTS
+User input: $ARGUMENTS
 
-## 项目结构检查
+## Project Structure Check
 
-首先确保项目目录结构存在。使用 `execute_command` 工具执行：
+First, ensure the project directory structure exists. Use the `execute_command` tool to execute:
 
 ```bash
 mkdir -p memory stories spec/tracking
 ```
 
-## 核心理念
+## Core Concept
 
-**一个命令，双重智能**：
+**One Command, Dual Intelligence**:
 
-- 📐 **框架分析**：在写作前验证规格、计划、任务的一致性（类似 spec-kit）
-- 📝 **内容分析**：在写作后验证已完成内容的质量和符合度
+-   📐 **Framework Analysis**: Verifies the consistency of specifications, plans, and tasks before writing (similar to spec-kit).
+-   📝 **Content Analysis**: Verifies the quality and compliance of completed content after writing.
 
-**克制而不简陋**：
+**Restrained but not Simplistic**:
 
-- 用户只需执行 `/analyze`，系统自动判断应该执行哪种分析
-- 支持手动指定模式：`$ARGUMENTS --type=framework` 或 `--type=content`
+-   The user only needs to execute `/analyze`, and the system automatically determines which type of analysis to perform.
+-   Supports manual mode specification: `$ARGUMENTS --type=framework` or `--type=content`.
 
-## 执行流程
+## Execution Flow
 
-### 1. 智能阶段检测
+### 1. Intelligent Stage Detection
 
-**检测当前创作状态**：
+**Detect the current creation status**:
 
-使用 `execute_command` 或 `list_files` 检查项目文件（结合追踪脚本的判定逻辑）：
+Use `execute_command` or `list_files` to check project files (combining the logic from tracking scripts):
 
 ```bash
-# 如果存在 plot-tracker.json，优先基于其 currentState / 完成节点判断
+# If plot-tracker.json exists, prioritize judgment based on its currentState / completed nodes
 test -f spec/tracking/plot-tracker.json && echo "plot-tracker-found" || echo "plot-tracker-not-found"
 
-# 统计已完成的章节数（作为通用回退方案）
+# Count the number of completed chapters (as a general fallback)
 find stories -path "*/content/*.md" -type f | wc -l
-# 检查是否存在规格、计划、任务文件
+# Check for the existence of specification, plan, and task files
 find stories -name "specification.md" -o -name "creative-plan.md" -o -name "tasks.md"
 ```
 
-**自动判断分析类型**：
+**Automatically determine the analysis type**:
 
-- 如果存在 `spec/tracking/plot-tracker.json`，且其中记录已进入内容阶段 → **内容分析**
-- 如果章节数 = 0 → **框架分析**
-- 如果章节数 < 3 → **框架分析**（但提示可以继续写作）
-- 如果章节数 ≥ 3 → **内容分析**
+-   If `spec/tracking/plot-tracker.json` exists and records that the content stage has been entered → **Content Analysis**
+-   If the number of chapters = 0 → **Framework Analysis**
+-   If the number of chapters < 3 → **Framework Analysis** (but suggest that writing can continue)
+-   If the number of chapters ≥ 3 → **Content Analysis**
 
-### 2. 决策逻辑
+### 2. Decision Logic
 
-解析用户参数 `$ARGUMENTS`：
+Parse the user arguments `$ARGUMENTS`:
 
-**手动指定模式**（优先级最高）：
+**Manual Specification Mode** (highest priority):
 
-- 包含 `--type=framework` → 强制框架分析
-- 包含 `--type=content` → 强制内容分析
+-   Contains `--type=framework` → Force framework analysis.
+-   Contains `--type=content` → Force content analysis.
 
-**🆕 专项分析模式**（新增）：
+**🆕 Specialized Analysis Mode** (new):
 
-- 包含 `--focus=opening` → 开篇专项分析（重点分析前3章）
-- 包含 `--focus=pacing` → 节奏专项分析（重点分析爽点/冲突分布）
-- 包含 `--focus=character` → 人物专项分析（重点分析人物弧光）
-- 包含 `--focus=foreshadow` → 伏笔专项分析（重点分析伏笔埋设与回收）
-- 包含 `--focus=logic` → 逻辑专项分析（重点查找逻辑漏洞）
-- 包含 `--focus=style` → 风格专项分析（重点检查文笔一致性）
+-   Contains `--focus=opening` → Specialized opening analysis (focus on the first 3 chapters).
+-   Contains `--focus=pacing` → Specialized pacing analysis (focus on the distribution of high points/conflicts).
+-   Contains `--focus=character` → Specialized character analysis (focus on character arcs).
+-   Contains `--focus=foreshadow` → Specialized foreshadowing analysis (focus on planting and resolving foreshadowing).
+-   Contains `--focus=logic` → Specialized logic analysis (focus on finding logical loopholes).
+-   Contains `--focus=style` → Specialized style analysis (focus on checking writing style consistency).
 
-**自动判断模式**：
+**Automatic Judgment Mode**:
 
-- 章节数 = 0 → **框架分析**
-- 章节数 < 3 → **框架分析**（但提示可以继续写作）
-- 章节数 ≥ 3 → **内容分析**
+-   Number of chapters = 0 → **Framework Analysis**
+-   Number of chapters < 3 → **Framework Analysis** (but suggest that writing can continue)
+-   Number of chapters ≥ 3 → **Content Analysis**
 
-### 3. 执行对应分析
+### 3. Execute Corresponding Analysis
 
-根据决策结果，执行以下两种分析之一。
-
----
-
-## 模式A：框架一致性分析
-
-**目标**：在写作前验证准备工作是否充分，确保规格、计划、任务之间无矛盾。
-
-### A1. 加载基准文档
-
-- 宪法文件：`memory/constitution.md`
-- 规格文件：`stories/*/specification.md`
-- 计划文件：`stories/*/creative-plan.md`
-- 任务文件：`stories/*/tasks.md`
-
-### A2. 覆盖率分析
-
-检查所有规格需求是否都有对应的计划和任务：
-
-```markdown
-## 覆盖率分析报告
-
-### P0 需求覆盖
-
-- [需求1：主角成长线] → ✅ 计划第3章段、任务#5-8
-- [需求2：反派设定] → ⚠️ 计划中提及，但无具体任务
-- [需求3：悬念设置] → ❌ 计划和任务中均未覆盖
-
-### P1 需求覆盖
-
-覆盖率：75% (3/4)
-
-### P2 需求覆盖
-
-覆盖率：50% (2/4)
-
-### 任务完整性
-
-- 所有计划章节是否有对应任务：⚠️ 第10-12章缺少任务
-- 任务是否涵盖所有关键场景：✅ 是
-```
-
-### A3. 一致性检查
-
-验证文档之间是否存在矛盾：
-
-```markdown
-## 一致性检查报告
-
-### 规格 ↔ 计划
-
-- ✅ 主题表达一致
-- ⚠️ 规格要求"快节奏"，但计划前5章节奏较慢
-- ❌ 规格禁止"感情戏过多"，但计划第6-8章大量感情线
-
-### 计划 ↔ 任务
-
-- ✅ 所有计划章节都有任务
-- ⚠️ 任务总字数预估 150K，但计划目标是 100K
-- ❌ 计划要求第5章是高潮，但任务标注为"过渡章节"
-
-### 宪法合规
-
-- ✅ 计划符合创作宪法的价值观
-- ✅ 任务分解符合质量标准
-```
-
-### A4. 逻辑问题预警
-
-分析故事线设计中的潜在逻辑漏洞：
-
-```markdown
-## 逻辑问题预警
-
-### 时间线冲突
-
-- ⚠️ 第3章是"三年后"，但第5章角色提到"两年前的事"，时间对不上
-
-### 角色能力矛盾
-
-- ❌ 第2章主角"不会武功"，第4章任务描述"使用剑术击败敌人"
-
-### 伏笔未规划
-
-- ⚠️ 第1章埋伏笔"神秘令牌"，但后续章节无回收计划
-```
-
-### A5. 准备就绪评估
-
-评估是否可以开始写作：
-
-```markdown
-## 准备就绪评估
-
-### 必要条件 (P0)
-
-- [x] 规格完整且明确
-- [x] 计划覆盖所有 P0 需求
-- [ ] 任务分解完整（缺少3个章节的任务）
-- [ ] 无致命逻辑矛盾（发现2处）
-
-### 建议条件 (P1)
-
-- [x] 角色档案完善
-- [ ] 世界观设定文档不够详细
-- [x] 时间线规划清晰
-
-### 总体评分：6/10
-
-**建议**：
-
-1. 🔴 必须修复：补充第10-12章的任务
-2. 🔴 必须修复：解决时间线和角色能力矛盾
-3. 🟡 建议优化：补充世界观设定文档
-4. 🟢 可选：调整前5章节奏设计
-
-**结论**：当前**不建议开始写作**，请先解决 P0 问题。
-```
+Based on the decision, perform one of the following two analyses.
 
 ---
 
-## 模式B：内容质量分析
+## Mode A: Framework Consistency Analysis
 
-**目标**：对已完成的内容进行综合质量验证，确保符合规格并提供改进建议。
+**Objective**: To verify that preparation is sufficient before writing, ensuring no contradictions between specifications, plans, and tasks.
 
-### B1. 加载验证基准
+### A1. Load Benchmark Documents
 
-- 宪法文件：`memory/constitution.md`
-- 规格文件：`stories/*/specification.md`
-- 计划文件：`stories/*/creative-plan.md`
-- 任务列表：`stories/*/tasks.md`
-- **已完成内容**：`stories/*/content/*.md` 或 `stories/*/chapters/*.md`
+-   Constitution file: `memory/constitution.md`
+-   Specification file: `stories/*/specification.md`
+-   Plan file: `stories/*/creative-plan.md`
+-   Tasks file: `stories/*/tasks.md`
 
-### B2. 宪法合规性检查
+### A2. Coverage Analysis
 
-验证作品是否遵循创作宪法的原则：
-
-```markdown
-## 宪法合规性报告
-
-### 核心价值观检查
-
-- [x] 价值观原则1：积极向上的主题 ✅
-- [x] 价值观原则2：避免低俗内容 ✅
-- [ ] 价值观原则3：尊重文化传统 ⚠️ 第7章有争议描述
-
-### 质量标准验证
-
-- 逻辑一致性：8/10 ⚠️ 第3章和第6章有小矛盾
-- 人物饱满度：7/10（主角层次丰富，配角略单薄）
-- 文字水准：8/10（流畅度好，部分描写可加强）
-
-### 风格一致性
-
-- 叙事风格：一致 ✅
-- 语言风格：一致 ✅
-- 节奏控制：前慢后快，整体合理 ✅
-
-**总体评分：8/10**
-
-### 完成提示 + 下一步
-
-在聊天中输出：
-```
-
-✅ 分析完成（内容模式/框架模式）
-
-```
-
-给出针对性的下一步建议：
-- 若为框架问题（缺任务/逻辑冲突）→ 运行 `/plan` 或 `/tasks` 修正
-- 若为内容问题（文本质量/风格一致性）→ 运行 `/write` 修正对应章节
-- 若当前章节数为 0 → 运行 `/specify` 先定义规格
-```
-
-### B3. 规格符合度分析
-
-检查实现是否满足规格要求：
+Check if all specification requirements have corresponding plans and tasks:
 
 ```markdown
-## 规格符合度分析
+## Coverage Analysis Report
 
-### 核心需求覆盖
+### P0 Requirement Coverage
 
-#### P0（必须包含）
+- [Requirement 1: Protagonist's growth arc] → ✅ Plan Chapter 3, Tasks #5-8
+- [Requirement 2: Villain's setting] → ⚠️ Mentioned in the plan, but no specific tasks
+- [Requirement 3: Suspense setup] → ❌ Not covered in plan or tasks
 
-- [需求1：父子冲突] → ✅ 第2-4章充分展现
-- [需求2：悬念设置] → ⚠️ 第5章悬念不足
-- [需求3：反派立体] → ❌ 反派尚未正式出场
+### P1 Requirement Coverage
 
-覆盖率：67% (2/3)
+Coverage: 75% (3/4)
 
-#### P1（应该包含）
+### P2 Requirement Coverage
 
-覆盖率：75% (3/4)
+Coverage: 50% (2/4)
 
-#### P2（可以包含）
+### Task Completeness
 
-覆盖率：50% (2/4)
-
-### 目标达成度
-
-- 目标读者适配：85%（节奏和情节符合目标读者偏好）
-- 市场定位符合：80%（差异化卖点清晰，但需加强）
-- 成功标准达成：5/8 ⚠️ 部分指标未达标
-
-### 约束条件遵守
-
-- 内容红线：✅ 无违规
-- 创作约束：✅ 字数、更新频率符合要求
-- 技术约束：✅ 平台格式规范
-
-**总体评分：7/10**
+- Do all planned chapters have corresponding tasks: ⚠️ Chapters 10-12 are missing tasks
+- Do tasks cover all key scenes: ✅ Yes
 ```
 
-### B4. 计划执行分析
+### A3. Consistency Check
 
-评估实际执行与计划的偏差：
+Verify if there are contradictions between documents:
 
 ```markdown
-## 计划执行分析
+## Consistency Check Report
 
-### 章节架构对比
+### Specification ↔ Plan
 
-| 计划            | 实际    | 偏差分析               |
-| --------------- | ------- | ---------------------- |
-| 第1章：开篇钩子 | ✅ 完成 | 符合预期，开篇吸引力强 |
-| 第2章：冲突展开 | ✅ 完成 | 略有调整，增加了伏笔   |
-| 第3章：转折点   | ⚠️ 完成 | 转折提前到第2章结尾    |
-| 第4章：深化矛盾 | ✅ 完成 | 完全符合计划           |
-| 第5章：高潮前奏 | ❌ 延后 | 实际成为过渡章节       |
+- ✅ Consistent theme expression
+- ⚠️ Specification requires "fast pacing," but the plan for the first 5 chapters is slow-paced
+- ❌ Specification prohibits "too much romance," but chapters 6-8 of the plan have extensive romantic plotlines
 
-### 人物发展轨迹
+### Plan ↔ Tasks
 
-- 主角成长弧：符合度 85%（成长速度略快于计划）
-- 配角功能：实现度 70%（配角B的作用未充分体现）
-- 关系演变：符合度 90%（父子关系演变符合预期）
+- ✅ All planned chapters have tasks
+- ⚠️ The total estimated word count for tasks is 150K, but the plan's target is 100K
+- ❌ The plan requires Chapter 5 to be a climax, but the task is marked as a "transitional chapter"
 
-### 世界观展开
+### Constitution Compliance
 
-- 第一层设定（基础规则）：✅ 按计划展开
-- 第二层设定（权力结构）：⚠️ 提前揭示（计划第8章，实际第5章）
-- 第三层设定（终极秘密）：待展开
-
-**符合度评分：8/10**
+- ✅ The plan aligns with the values of the writing constitution
+- ✅ The task breakdown meets quality standards
 ```
 
-### B5. 内容质量分析
+### A4. Logical Issue Warnings
 
-深入分析作品质量：
+Analyze potential logical loopholes in the storyline design:
 
 ```markdown
-## 内容质量分析
+## Logical Issue Warnings
 
-### 文本统计
+### Timeline Conflicts
 
-- 总字数：45,230 字
-- 平均章节长度：6,461 字
-- 完成进度：35%（7/20 章）
+- ⚠️ Chapter 3 is "three years later," but a character in Chapter 5 mentions "an event from two years ago," which doesn't add up.
 
-### 结构分析
+### Character Ability Contradictions
 
-- 情节密度：中等（每章 2-3 个情节点）
-- 冲突频率：适中（平均每章 1.5 次冲突）
-- 节奏变化：前3章慢，第4-7章加快，符合预期
+- ❌ The protagonist "doesn't know martial arts" in Chapter 2, but the task for Chapter 4 describes "defeating an enemy with swordsmanship."
 
-### 技术问题
+### Unplanned Foreshadowing
 
-#### 逻辑问题
-
-1. 第3章：角色提到"三年前的事"，但时间线显示只过了两年
-2. 第6章：主角使用了第2章明确说"不会"的能力
-
-#### 连贯性问题
-
-1. 第4章结尾悬念，第5章开篇未衔接
-
-#### 人物一致性
-
-1. 主角在第2章和第5章对同一类事件反应矛盾（第2章冲动，第5章冷静）
-
-### 亮点识别
-
-1. 第1章：开篇钩子设计精妙，引入自然
-2. 第4章：父子对话层次丰富，情感真挚
-3. 第6章：动作场面描写流畅，画面感强
-
-**质量评分：7.5/10**
+- ⚠️ A "mysterious token" is foreshadowed in Chapter 1, but there is no plan to resolve it in subsequent chapters.
 ```
 
-### 🆕 B5.1 专项分析（可选）
+### A5. Readiness Assessment
 
-**如果用户指定了 `--focus` 参数，执行相应的专项深度分析**：
-
----
-
-#### 专项1：开篇分析（--focus=opening）
-
-**目标**：深度分析前1-3章是否符合黄金开篇法则
-
-**分析维度**：
+Evaluate whether writing can begin:
 
 ```markdown
-## 开篇专项分析报告
+## Readiness Assessment
 
-### 黄金法则检查
+### Necessary Conditions (P0)
 
-**如果存在 `spec/presets/golden-opening.md`，自动读取并应用五大法则**
+- [x] Specification is complete and clear
+- [x] Plan covers all P0 requirements
+- [ ] Task breakdown is incomplete (missing tasks for 3 chapters)
+- [ ] No fatal logical contradictions (2 found)
 
-#### 法则1：动态场景切入
+### Recommended Conditions (P1)
 
-- ✅ 第一章开场方式：[动作/对话/冲突] 直接切入
-- ❌ 发现问题：开篇有200字静态环境描写（违反法则）
-- 建议：删除或缩短至50字以内，直接进入动作
+- [x] Character profiles are well-developed
+- [ ] World-building document is not detailed enough
+- [x] Timeline planning is clear
 
-#### 法则2：核心冲突前置
+### Overall Score: 6/10
 
-- ✅ 核心冲突抛出时机：第1章第[X]节
-- ⚠️ 冲突强度：中等（建议提升到"威胁主角生存/目标"级别）
-- 具体：[描述冲突内容]
+**Recommendations**:
 
-#### 法则3：避免信息轰炸
+1.  🔴 Must Fix: Add tasks for chapters 10-12.
+2.  🔴 Must Fix: Resolve timeline and character ability contradictions.
+3.  🟡 Recommended Optimization: Supplement the world-building document.
+4.  🟢 Optional: Adjust the pacing design of the first 5 chapters.
 
-- ✅ 世界观透露方式：滴灌式，自然融入情节
-- ❌ 发现问题：第1章第3节有500字设定说明（违反法则）
-- 建议：拆分到前5章，每章透露100字
-
-#### 法则4：限制出场人数
-
-- ✅ 第一章有名有姓角色：[X]人（符合≤3人要求）
-- ❌ 发现问题：第一章出场5人，过多（违反法则）
-- 建议：延迟[角色D]和[角色E]出场到第2-3章
-
-#### 法则5：快速展现金手指
-
-- ✅ 金手指展现时机：第[X]章
-- ⚠️ 展现方式：仅提及，未实际使用（建议实际展示效果）
-- 具体：[描述展现方式]
-
-### 开篇钩子评估
-
-- **第一句钩子强度**：[强/中/弱]
-    - 当前：[引用第一句]
-    - 分析：[是否吸引读者]
-    - 建议：[优化方向]
-
-- **第一章结尾钩子**：[强/中/弱]
-    - 当前：[引用结尾段落]
-    - 分析：[是否引发期待]
-    - 建议：[优化方向]
-
-### 前三章节奏检查
-
-| 章节  | 目标               | 实际完成度     | 评分   |
-| ----- | ------------------ | -------------- | ------ |
-| 第1章 | 钩住读者，建立期待 | [描述实际效果] | [X]/10 |
-| 第2章 | 展现能力，强化钩子 | [描述实际效果] | [X]/10 |
-| 第3章 | 初步爽点，确认追读 | [描述实际效果] | [X]/10 |
-
-**开篇评分：[X]/10**
-**建议**：[具体改进方向]
+**Conclusion**: It is currently **not recommended to start writing**. Please resolve the P0 issues first.
 ```
 
 ---
 
-#### 专项2：节奏分析（--focus=pacing）
+## Mode B: Content Quality Analysis
 
-**目标**：分析全文节奏分布，评估爽点/冲突密度
+**Objective**: To conduct a comprehensive quality verification of the completed content, ensuring it meets specifications and providing improvement suggestions.
 
-**分析维度**：
+### B1. Load Verification Benchmarks
+
+-   Constitution file: `memory/constitution.md`
+-   Specification file: `stories/*/specification.md`
+-   Plan file: `stories/*/creative-plan.md`
+-   Task list: `stories/*/tasks.md`
+-   **Completed Content**: `stories/*/content/*.md` or `stories/*/chapters/*.md`
+
+### B2. Constitution Compliance Check
+
+Verify that the work adheres to the principles of the writing constitution:
 
 ```markdown
-## 节奏专项分析报告
+## Constitution Compliance Report
 
-### 节奏参数（如有rhythm-config.json）
+### Core Value Check
 
-**读取 `spec/presets/rhythm-config.json`（如果存在）**：
+- [x] Value Principle 1: Positive theme ✅
+- [x] Value Principle 2: Avoid vulgar content ✅
+- [ ] Value Principle 3: Respect cultural traditions ⚠️ Controversial description in Chapter 7
 
-- 目标章节字数：[X]字
-- 目标小高潮间隔：[X]章
-- 目标大高潮间隔：[X]章
-- 目标节奏风格：[快/适中/慢]
+### Quality Standard Verification
 
-### 冲突分布统计
+- Logical Consistency: 8/10 ⚠️ Minor contradictions in Chapters 3 and 6
+- Character Depth: 7/10 (Protagonist is multi-layered, supporting characters are a bit flat)
+- Writing Standard: 8/10 (Good fluency, some descriptions can be enhanced)
 
-| 章节  | 冲突次数 | 冲突类型  | 冲突强度 | 符合预期？ |
-| ----- | -------- | --------- | -------- | ---------- |
-| 第1章 | 2次      | 人际/内心 | 中/高    | ✅         |
-| 第2章 | 1次      | 人际      | 低       | ⚠️ 偏少    |
-| 第3章 | 3次      | 人际/外部 | 高/高/中 | ✅         |
-| ...   | ...      | ...       | ...      | ...        |
+### Style Consistency
 
-**平均冲突密度**：[X]次/章
-**建议密度**：[Y]次/章（基于类型和节奏配置）
+- Narrative Style: Consistent ✅
+- Language Style: Consistent ✅
+- Pacing Control: Slow at the beginning, faster later, overall reasonable ✅
 
-### 爽点分布统计
+**Overall Score: 8/10**
 
-| 章节  | 爽点类型 | 爽点强度 | 间隔章数 |
-| ----- | -------- | -------- | -------- |
-| 第1章 | -        | -        | -        |
-| 第3章 | 打脸     | 高       | 3章      |
-| 第7章 | 升级     | 中       | 4章      |
-| ...   | ...      | ...      | ...      |
+### Completion Prompt + Next Steps
 
-**平均爽点间隔**：[X]章
-**建议间隔**：[Y]章（基于rhythm-config或类型标准）
+Output in chat:
 
-### 高潮分布
+✅ Analysis complete (Content Mode/Framework Mode)
 
-- **小高潮**：第[X]、[Y]、[Z]章
-    - 间隔合理性：✅ 符合5章一次的标准
-- **大高潮**：第[X]章
-    - 位置合理性：⚠️ 建议第30章，实际第25章（提前）
+Provide targeted next-step suggestions:
+- If it's a framework issue (missing tasks/logical conflicts) → Run `/plan` or `/tasks` to correct.
+- If it's a content issue (text quality/style consistency) → Run `/write` to revise the corresponding chapter.
+- If the current chapter count is 0 → Run `/specify` to define the specification first.
+```
 
-**节奏评价**：
+### B3. Specification Compliance Analysis
 
-- ✅ 整体起伏合理
-- ⚠️ 第10-15章略显平淡
-- ❌ 第20章有节奏断裂
+Check if the implementation meets the specification requirements:
 
-**改进建议**：
+```markdown
+## Specification Compliance Analysis
 
-1. 在第12章增加一个中等强度冲突
-2. 第20章补充过渡情节，避免断裂感
+### Core Requirement Coverage
 
-**节奏评分：[X]/10**
+#### P0 (Must Include)
+
+- [Requirement 1: Father-son conflict] → ✅ Fully demonstrated in Chapters 2-4
+- [Requirement 2: Suspense setup] → ⚠️ Insufficient suspense in Chapter 5
+- [Requirement 3: Three-dimensional villain] → ❌ Villain has not yet officially appeared
+
+Coverage: 67% (2/3)
+
+#### P1 (Should Include)
+
+Coverage: 75% (3/4)
+
+#### P2 (Could Include)
+
+Coverage: 50% (2/4)
+
+### Goal Achievement
+
+- Target Audience Fit: 85% (Pacing and plot align with target audience preferences)
+- Market Positioning Compliance: 80% (Differentiating selling points are clear but need reinforcement)
+- Success Criteria Achievement: 5/8 ⚠️ Some metrics not met
+
+### Constraint Adherence
+
+- Content Red Lines: ✅ No violations
+- Creation Constraints: ✅ Word count, update frequency meet requirements
+- Technical Constraints: ✅ Platform formatting standards met
+
+**Overall Score: 7/10**
+```
+
+### B4. Plan Execution Analysis
+
+Evaluate the deviation between actual execution and the plan:
+
+```markdown
+## Plan Execution Analysis
+
+### Chapter Structure Comparison
+
+| Plan | Actual | Deviation Analysis |
+| --- | --- | --- |
+| Chapter 1: Opening Hook | ✅ Complete | Meets expectations, strong opening appeal |
+| Chapter 2: Conflict Development | ✅ Complete | Slightly adjusted, added foreshadowing |
+| Chapter 3: Turning Point | ⚠️ Complete | Turning point moved up to the end of Chapter 2 |
+| Chapter 4: Deepening Conflict | ✅ Complete | Fully aligns with the plan |
+| Chapter 5: Prelude to Climax | ❌ Postponed | Actually became a transitional chapter |
+
+### Character Development Trajectory
+
+- Protagonist's Growth Arc: 85% compliance (Growth is slightly faster than planned)
+- Supporting Character Functions: 70% fulfillment (Supporting Character B's role not fully realized)
+- Relationship Evolution: 90% compliance (Father-son relationship evolves as expected)
+
+### World-building Unfolding
+
+- First-level setting (basic rules): ✅ Unfolded as planned
+- Second-level setting (power structures): ⚠️ Revealed early (planned for Chapter 8, actually in Chapter 5)
+- Third-level setting (ultimate secrets): To be unfolded
+
+**Compliance Score: 8/10**
+```
+
+### B5. Content Quality Analysis
+
+In-depth analysis of the work's quality:
+
+```markdown
+## Content Quality Analysis
+
+### Text Statistics
+
+- Total Word Count: 45,230 words
+- Average Chapter Length: 6,461 words
+- Completion Progress: 35% (7/20 chapters)
+
+### Structural Analysis
+
+- Plot Density: Medium (2-3 plot points per chapter)
+- Conflict Frequency: Moderate (average of 1.5 conflicts per chapter)
+- Pacing Variation: Slow in the first 3 chapters, accelerates in chapters 4-7, as expected
+
+### Technical Issues
+
+#### Logical Issues
+
+1.  Chapter 3: A character mentions "an event from three years ago," but the timeline shows only two years have passed.
+2.  Chapter 6: The protagonist uses an ability explicitly stated they "do not have" in Chapter 2.
+
+#### Coherence Issues
+
+1.  The cliffhanger at the end of Chapter 4 is not addressed at the beginning of Chapter 5.
+
+#### Character Consistency
+
+1.  The protagonist's reaction to similar events is contradictory in Chapters 2 and 5 (impulsive in Ch. 2, calm in Ch. 5).
+
+### Strengths Identification
+
+1.  Chapter 1: The opening hook is cleverly designed and introduced naturally.
+2.  Chapter 4: The dialogue between the father and son is rich and emotionally sincere.
+3.  Chapter 6: The action scene descriptions are fluid and create a strong visual sense.
+
+**Quality Score: 7.5/10**
+```
+
+### 🆕 B5.1 Specialized Analysis (Optional)
+
+**If the user specifies the `--focus` parameter, perform the corresponding in-depth specialized analysis**:
+
+---
+
+#### Specialization 1: Opening Analysis (`--focus=opening`)
+
+**Objective**: To deeply analyze whether the first 1-3 chapters adhere to the golden opening rules.
+
+**Analysis Dimensions**:
+
+```markdown
+## Specialized Opening Analysis Report
+
+### Golden Rule Check
+
+**If `spec/presets/golden-opening.md` exists, automatically read and apply the five golden rules.**
+
+#### Rule 1: Dynamic Scene Entry
+
+- ✅ Opening method of Chapter 1: [Action/Dialogue/Conflict] directly cuts in.
+- ❌ Issue found: The opening has 200 words of static environmental description (violates the rule).
+- Recommendation: Delete or shorten to under 50 words and go directly into the action.
+
+#### Rule 2: Front-load the Core Conflict
+
+- ✅ Timing of core conflict introduction: Chapter 1, Section [X].
+- ⚠️ Conflict Intensity: Medium (recommend increasing to a level that "threatens the protagonist's survival/goal").
+- Details: [Describe the conflict content].
+
+#### Rule 3: Avoid Information Dumps
+
+- ✅ Method of revealing world-building: Drip-feed, naturally integrated into the plot.
+- ❌ Issue found: Chapter 1, Section 3 has a 500-word setting explanation (violates the rule).
+- Recommendation: Split it across the first 5 chapters, revealing 100 words per chapter.
+
+#### Rule 4: Limit the Number of Characters Introduced
+
+- ✅ Named characters in Chapter 1: [X] (meets the ≤3 requirement).
+- ❌ Issue found: 5 characters are introduced in Chapter 1, which is too many (violates the rule).
+- Recommendation: Delay the introduction of [Character D] and [Character E] to Chapters 2-3.
+
+#### Rule 5: Quickly Showcase the "Golden Finger" (Special Ability/Advantage)
+
+- ✅ Timing of golden finger reveal: Chapter [X].
+- ⚠️ Reveal method: Only mentioned, not actually used (recommend demonstrating its effect).
+- Details: [Describe the reveal method].
+
+### Opening Hook Assessment
+
+- **First Sentence Hook Strength**: [Strong/Medium/Weak]
+    - Current: [Quote the first sentence]
+    - Analysis: [Is it engaging?]
+    - Recommendation: [Direction for optimization]
+
+- **Chapter 1 Ending Hook**: [Strong/Medium/Weak]
+    - Current: [Quote the ending paragraph]
+    - Analysis: [Does it create anticipation?]
+    - Recommendation: [Direction for optimization]
+
+### First Three Chapters Pacing Check
+
+| Chapter | Objective | Actual Fulfillment | Score |
+| --- | --- | --- | --- |
+| Chapter 1 | Hook the reader, build anticipation | [Describe actual effect] | [X]/10 |
+| Chapter 2 | Showcase abilities, strengthen the hook | [Describe actual effect] | [X]/10 |
+| Chapter 3 | Initial high point, confirm reader interest | [Describe actual effect] | [X]/10 |
+
+**Opening Score: [X]/10**
+**Recommendation**: [Specific improvement directions]
 ```
 
 ---
 
-#### 专项3：人物分析（--focus=character）
+#### Specialization 2: Pacing Analysis (`--focus=pacing`)
 
-**目标**：评估人物弧光、一致性、成长轨迹
+**Objective**: To analyze the pacing distribution throughout the text and evaluate the density of high points/conflicts.
+
+**Analysis Dimensions**:
 
 ```markdown
-## 人物专项分析报告
+## Specialized Pacing Analysis Report
 
-### 主角弧光追踪
+### Pacing Parameters (if rhythm-config.json exists)
 
-**从specification.md和creative-plan.md读取计划的人物弧光**
+**Read `spec/presets/rhythm-config.json` (if it exists)**:
 
-| 节点 | 计划状态 | 实际状态 | 符合度   |
-| ---- | -------- | -------- | -------- |
-| 起始 | [A状态]  | [实际A]  | ✅/⚠️/❌ |
-| 触发 | [B状态]  | [实际B]  | ✅/⚠️/❌ |
-| 成长 | [C状态]  | [实际C]  | ✅/⚠️/❌ |
-| 转变 | [D状态]  | [待展开] | -        |
+- Target chapter word count: [X] words
+- Target mini-climax interval: [X] chapters
+- Target major-climax interval: [X] chapters
+- Target pacing style: [Fast/Moderate/Slow]
 
-**成长合理性评估**：
+### Conflict Distribution Statistics
 
-- ✅ 成长有触发事件
-- ⚠️ 成长速度略快（第3章到第7章跨度过大）
-- ✅ 成长符合人物性格
+| Chapter | Conflict Count | Conflict Type | Conflict Intensity | Meets Expectations? |
+| --- | --- | --- | --- | --- |
+| Chapter 1 | 2 | Interpersonal/Internal | Medium/High | ✅ |
+| Chapter 2 | 1 | Interpersonal | Low | ⚠️ Too few |
+| Chapter 3 | 3 | Interpersonal/External | High/High/Medium | ✅ |
+| ... | ... | ... | ... | ... |
 
-### 主角一致性检查
+**Average Conflict Density**: [X] per chapter
+**Recommended Density**: [Y] per chapter (based on genre and pacing configuration)
 
-- **性格一致性**：
-    - ✅ 第1-5章：冲动型人格保持一致
-    - ❌ 第6章：面对类似情境突然变得冷静（矛盾）
+### High Point Distribution Statistics
 
-- **能力一致性**：
-    - ✅ 武力值逐步提升，符合设定
-    - ❌ 第7章使用了未学过的技能
+| Chapter | High Point Type | High Point Intensity | Interval (chapters) |
+| --- | --- | --- | --- |
+| Chapter 1 | - | - | - |
+| Chapter 3 | Face-slapping | High | 3 chapters |
+| Chapter 7 | Level-up | Medium | 4 chapters |
+| ... | ... | ... | ... |
 
-- **动机一致性**：
-    - ✅ 核心目标清晰且贯穿始终
+**Average High Point Interval**: [X] chapters
+**Recommended Interval**: [Y] chapters (based on rhythm-config or genre standards)
 
-### 配角功能评估
+### Climax Distribution
 
-| 配角  | 计划功能 | 实际功能   | 实现度 |
-| ----- | -------- | ---------- | ------ |
-| 配角A | 导师型   | 导师型     | 90% ✅ |
-| 配角B | 对手型   | 未充分体现 | 40% ⚠️ |
-| 配角C | 陪衬型   | 陪衬型     | 85% ✅ |
+- **Mini-climaxes**: Chapters [X], [Y], [Z]
+    - Interval Reasonableness: ✅ Meets the standard of one every 5 chapters.
+- **Major Climax**: Chapter [X]
+    - Positional Reasonableness: ⚠️ Recommended for Chapter 30, actually in Chapter 25 (too early).
 
-**建议**：
+**Pacing Evaluation**:
 
-- 增加配角B的对抗戏份（第8-10章）
-- 明确配角B的动机和立场
+- ✅ Overall rhythm is reasonable.
+- ⚠️ Chapters 10-15 are slightly dull.
+- ❌ There is a pacing break in Chapter 20.
 
-### 关系网络演变
+**Improvement Suggestions**:
+
+1.  Add a medium-intensity conflict in Chapter 12.
+2.  Add transitional content in Chapter 20 to avoid a disjointed feeling.
+
+**Pacing Score: [X]/10**
 ```
 
-第1章：主角 ←敌对← 反派A
+---
+
+#### Specialization 3: Character Analysis (`--focus=character`)
+
+**Objective**: To evaluate character arcs, consistency, and growth trajectories.
+
+```markdown
+## Specialized Character Analysis Report
+
+### Protagonist Arc Tracking
+
+**Read the planned character arc from specification.md and creative-plan.md**
+
+| Node | Planned State | Actual State | Compliance |
+| --- | --- | --- | --- |
+| Beginning | [State A] | [Actual A] | ✅/⚠️/❌ |
+| Trigger | [State B] | [Actual B] | ✅/⚠️/❌ |
+| Growth | [State C] | [Actual C] | ✅/⚠️/❌ |
+| Transformation | [State D] | [To be developed] | - |
+
+**Growth Reasonableness Assessment**:
+
+- ✅ Growth is triggered by events.
+- ⚠️ Growth is slightly too fast (too big a leap from Chapter 3 to Chapter 7).
+- ✅ Growth is consistent with the character's personality.
+
+### Protagonist Consistency Check
+
+- **Personality Consistency**:
+    - ✅ Chapters 1-5: Impulsive personality is consistent.
+    - ❌ Chapter 6: Suddenly becomes calm in a similar situation (contradiction).
+
+- **Ability Consistency**:
+    - ✅ Martial ability improves gradually, as per the setting.
+    - ❌ Uses an unlearned skill in Chapter 7.
+
+- **Motivation Consistency**:
+    - ✅ Core goal is clear and consistent throughout.
+
+### Supporting Character Function Assessment
+
+| Supporting Character | Planned Function | Actual Function | Fulfillment |
+| --- | --- | --- | --- |
+| Supp. Char. A | Mentor | Mentor | 90% ✅ |
+| Supp. Char. B | Rival | Not fully realized | 40% ⚠️ |
+| Supp. Char. C | Foil | Foil | 85% ✅ |
+
+**Recommendations**:
+
+-   Increase confrontational scenes for Supporting Character B (Chapters 8-10).
+-   Clarify Supporting Character B's motivations and stance.
+
+### Relationship Network Evolution
+
+Chapter 1: Protagonist ←Hostile← Villain A
 ↓
-师徒
+Mentor-Mentee
 ↓
-配角A
+Supp. Char. A
 
-第7章：主角 ←复杂关系← 反派A
+Chapter 7: Protagonist ←Complex Relationship← Villain A
 ↓ ↑
-师徒 误会
+Mentor-Mentee Misunderstanding
 ↓ ↓
-配角A → 配角B
+Supp. Char. A → Supp. Char. B
 
-```
+**Relationship Evolution Reasonableness**: ✅ Meets expectations.
 
-**关系演变合理性**：✅ 符合预期
-
-**人物评分：[X]/10**
-```
-
----
-
-#### 专项4：伏笔分析（--focus=foreshadow）
-
-**目标**：检查伏笔埋设与回收的完整性
-
-```markdown
-## 伏笔专项分析报告
-
-### 从specification.md 5.4节读取伏笔管理表
-
-### 伏笔埋设检查
-
-| 伏笔ID | 计划埋设章节 | 实际埋设章节 | 埋设质量                   |
-| ------ | ------------ | ------------ | -------------------------- |
-| F-001  | 第1章        | 第1章        | ✅ 自然，不突兀            |
-| F-002  | 第3章        | 第5章        | ⚠️ 延迟2章，需确认后续影响 |
-| F-003  | 第5章        | 未埋设       | ❌ 缺失                    |
-
-### 伏笔回收检查
-
-| 伏笔ID | 计划回收章节 | 实际回收章节 | 回收完整性 |
-| ------ | ------------ | ------------ | ---------- |
-| F-001  | 第10章       | 待完成       | -          |
-| F-002  | 第15章       | 待完成       | -          |
-
-### 非计划伏笔
-
-**在实际创作中新增的伏笔（未在specification中）**：
-
-1. 第2章：神秘人物暗示 → ⚠️ 需要在specification中补充回收计划
-2. 第6章：古老预言提及 → ⚠️ 需要决策是否回收
-
-### 伏笔密度评估
-
-- 平均每[X]章埋设1个伏笔
-- 建议密度：每[Y]章1个（基于类型标准）
-- 评价：✅ 符合 / ⚠️ 偏多 / ❌ 偏少
-
-### 风险提示
-
-- 🔴 伏笔F-003未埋设，可能影响第15章剧情
-- 🟡 新增伏笔2个，需补充回收计划
-
-**伏笔管理评分：[X]/10**
+**Character Score: [X]/10**
 ```
 
 ---
 
-#### 专项5：逻辑分析（--focus=logic）
+#### Specialization 4: Foreshadowing Analysis (`--focus=foreshadow`)
 
-**目标**：深度查找逻辑漏洞和矛盾
+**Objective**: To check the completeness of foreshadowing planting and resolution.
 
 ```markdown
-## 逻辑专项分析报告
+## Specialized Foreshadowing Analysis Report
 
-### 时间线检查
+### Read the foreshadowing management table from specification.md section 5.4
 
-**构建完整时间线**：
-```
+### Foreshadowing Planting Check
 
-绝对时间 故事时间 章节 关键事件
-2020-01-01 第0天 - [背景]
-2020-01-05 第4天 第1章 主角离家
-2020-01-10 第9天 第3章 遇到导师
-2023-01-10 三年后 第5章 ⚠️ 与第7章矛盾
-2022-01-10 两年后 第7章 角色回忆"三年前的事"
+| Foreshadow ID | Planned Planting Chapter | Actual Planting Chapter | Planting Quality |
+| --- | --- | --- | --- |
+| F-001 | Chapter 1 | Chapter 1 | ✅ Natural, not abrupt |
+| F-002 | Chapter 3 | Chapter 5 | ⚠️ Delayed by 2 chapters, need to confirm subsequent impact |
+| F-003 | Chapter 5 | Not planted | ❌ Missing |
 
-```
+### Foreshadowing Resolution Check
 
-**时间线矛盾**：
-- ❌ 第5章和第7章时间对不上（发现1处）
-- 建议：统一为"两年后"
+| Foreshadow ID | Planned Resolution Chapter | Actual Resolution Chapter | Resolution Completeness |
+| --- | --- | --- | --- |
+| F-001 | Chapter 10 | To be completed | - |
+| F-002 | Chapter 15 | To be completed | - |
 
-### 因果逻辑检查
-| 事件A（原因） | 事件B（结果） | 逻辑合理性 |
-|-------------|-------------|-----------|
-| 第2章主角练功 | 第4章实力提升 | ✅ 合理 |
-| 第3章宝物丢失 | 第6章宝物出现 | ❌ 未交代如何找回 |
-| 第5章立誓言 | 第7章违背誓言 | ⚠️ 缺少心理铺垫 |
+### Unplanned Foreshadowing
 
-### 能力一致性检查
-| 章节 | 能力设定 | 矛盾？ |
-|------|---------|--------|
-| 第2章 | 主角不会武功 | - |
-| 第4章 | 主角学习基础剑法 | ✅ 合理过渡 |
-| 第6章 | 主角使用高级剑法 | ❌ 跨度过大，缺少学习过程 |
+**New foreshadowing added during writing (not in the specification)**:
 
-### 世界观一致性
-- ✅ 魔法规则前后一致
-- ❌ 第3章提到"科技禁止"，第8章出现高科技武器
-- ⚠️ 社会阶层设定在第5章和第9章有细微差异
+1.  Chapter 2: Hint of a mysterious character → ⚠️ Need to add a resolution plan in the specification.
+2.  Chapter 6: Mention of an ancient prophecy → ⚠️ Need to decide whether to resolve it.
 
-### 动机合理性
-| 角色 | 行为 | 动机解释 | 合理性 |
-|------|------|---------|--------|
-| 主角 | 第5章冒险救人 | 正义感 | ✅ 符合人设 |
-| 配角A | 第7章背叛 | 未解释 | ❌ 突兀，缺少铺垫 |
-| 反派 | 第9章放过主角 | 欣赏才能 | ⚠️ 稍显牵强 |
+### Foreshadowing Density Assessment
 
-**逻辑严密性评分：[X]/10**
+-   One foreshadowing planted every [X] chapters on average.
+-   Recommended density: One every [Y] chapters (based on genre standards).
+-   Evaluation: ✅ Compliant / ⚠️ Too frequent / ❌ Too sparse
+
+### Risk Alerts
+
+-   🔴 Foreshadowing F-003 was not planted, which may affect the plot of Chapter 15.
+-   🟡 2 new foreshadowing elements added, need to supplement with resolution plans.
+
+**Foreshadowing Management Score: [X]/10**
 ```
 
 ---
 
-#### 专项6：风格分析（--focus=style）
+#### Specialization 5: Logic Analysis (`--focus=logic`)
 
-**目标**：检查文笔风格一致性，对比style-reference.md
+**Objective**: To deeply search for logical loopholes and contradictions.
 
 ```markdown
-## 风格专项分析报告
+## Specialized Logic Analysis Report
 
-### 如果存在 style-reference.md（来自 /book-internalize）
+### Timeline Check
 
-**读取 `memory/style-reference.md`，对比实际文风**
+**Construct a complete timeline**:
 
-### 词汇一致性检查
+Absolute Time | Story Time | Chapter | Key Event
+--- | --- | --- | ---
+2020-01-01 | Day 0 | - | [Background]
+2020-01-05 | Day 4 | Chapter 1 | Protagonist leaves home
+2020-01-10 | Day 9 | Chapter 3 | Meets mentor
+2023-01-10 | Three years later | Chapter 5 | ⚠️ Contradicts Chapter 7
+2022-01-10 | Two years later | Chapter 7 | Character recalls "an event from three years ago"
 
-**参考文风词汇偏好**：
+**Timeline Contradictions**:
+-   ❌ The timelines in Chapter 5 and Chapter 7 do not match (1 found).
+-   Recommendation: Unify to "two years later."
 
-- 目标常用修饰词：[列表]
-- 实际常用修饰词：[列表]
-- 匹配度：[X]%
+### Causal Logic Check
 
-**禁用词检查（AI腔）**：
+| Event A (Cause) | Event B (Result) | Logical Reasonableness |
+| --- | --- | --- |
+| Protagonist trains in Ch. 2 | Strength increases in Ch. 4 | ✅ Reasonable |
+| Treasure is lost in Ch. 3 | Treasure appears in Ch. 6 | ❌ No explanation of how it was recovered |
+| Makes a vow in Ch. 5 | Breaks the vow in Ch. 7 | ⚠️ Lacks psychological buildup |
 
-- ❌ 发现使用"弥漫着"共[X]次（style-reference禁用）
-- ❌ 发现使用"摇摇欲坠"共[X]次（style-reference禁用）
-- 建议：替换为对标作品常用词汇
+### Ability Consistency Check
 
-### 句式一致性检查
+| Chapter | Ability Setting | Contradiction? |
+| --- | --- | --- |
+| Chapter 2 | Protagonist doesn't know martial arts | - |
+| Chapter 4 | Protagonist learns basic swordsmanship | ✅ Reasonable transition |
+| Chapter 6 | Protagonist uses advanced swordsmanship | ❌ Leap is too large, lacks a learning process |
 
-- 平均句长：实际[X]字 vs 目标[Y]字
-- 段落密度：实际[X]字/段 vs 目标[Y]字/段
-- 评价：✅ 符合 / ⚠️ 偏差较大
+### World-building Consistency
 
-### 描写比例检查
+- ✅ Magic rules are consistent.
+- ❌ "Technology is forbidden" is mentioned in Chapter 3, but high-tech weapons appear in Chapter 8.
+- ⚠️ Slight differences in social class settings between Chapter 5 and Chapter 9.
 
-| 类型 | 目标比例 | 实际比例 | 偏差    |
-| ---- | -------- | -------- | ------- |
-| 对话 | 35%      | 40%      | +5% ⚠️  |
-| 动作 | 40%      | 30%      | -10% ❌ |
-| 描写 | 15%      | 20%      | +5% ⚠️  |
-| 心理 | 10%      | 10%      | 0% ✅   |
+### Motivation Reasonableness
 
-**建议**：增加动作描写比例，减少对话和描写
+| Character | Action | Motivation Explanation | Reasonableness |
+| --- | --- | --- | --- |
+| Protagonist | Risks life to save someone in Ch. 5 | Sense of justice | ✅ Fits character |
+| Supp. Char. A | Betrays in Ch. 7 | Unexplained | ❌ Abrupt, lacks foreshadowing |
+| Villain | Spares protagonist in Ch. 9 | Admires their talent | ⚠️ A bit forced |
 
-### 叙事风格一致性
-
-- 视角：✅ 第三人称限制，保持一致
-- 语言：✅ 口语化风格，符合目标
-- 节奏：⚠️ 前3章符合"快节奏"，第4-7章偏慢
-- 情感基调：✅ 热血基调贯穿
-
-### 章节间风格对比
-
-| 章节  | 风格特点             | 与参考作品相似度 |
-| ----- | -------------------- | ---------------- |
-| 第1章 | 简洁有力，动词密集   | 85% ✅           |
-| 第2章 | 略显啰嗦，修饰词过多 | 60% ⚠️           |
-| 第3章 | 回归简洁风格         | 80% ✅           |
-
-**风格一致性评分：[X]/10**
-**建议**：参考第1章和第3章风格，修订第2章
+**Logical Rigor Score: [X]/10**
 ```
 
 ---
 
-### B6. 任务完成度审计
+#### Specialization 6: Style Analysis (`--focus=style`)
 
-检查任务执行情况：
-
-```markdown
-## 任务完成度
-
-### 总体进度
-
-- 总任务数：28
-- 已完成：12 (43%)
-- 进行中：2 (7%)
-- 未开始：14 (50%)
-
-### 关键里程碑
-
-- [里程碑1：前5章完成] → ✅ 已达成
-- [里程碑2：主线推进到50%] → ⚠️ 延期（计划第10章，实际第7章仅30%）
-- [里程碑3：第一卷完结] → 待定
-
-### 阻塞和风险
-
-1. 第5章任务"高潮场景"未按计划执行，影响后续节奏
-2. 反派角色尚未出场，可能影响中期冲突设计
-```
-
-### B7. 生成改进建议
-
-基于分析结果提供具体建议：
+**Objective**: To check writing style consistency and compare with `style-reference.md`.
 
 ```markdown
-## 改进建议
+## Specialized Style Analysis Report
 
-### 紧急修复（P0）
+### If `style-reference.md` exists (from `/book-internalize`)
 
-1. **时间线矛盾**
-    - 影响：破坏读者信任，影响逻辑严密性
-    - 建议：统一第3章和第6章的时间表述，修改为"两年前"
-    - 位置：第3章第2节，第6章第4节
+**Read `memory/style-reference.md` and compare with the actual writing style.**
 
-2. **角色能力矛盾**
-    - 影响：严重影响人物可信度
-    - 建议：在第4-5章之间增加"学习武功"的过渡情节，或删除第6章的武功描写
-    - 位置：第2章第5节，第6章第3节
+### Vocabulary Consistency Check
 
-### 优化建议（P1）
+**Reference Style Vocabulary Preferences**:
 
-1. **第5章悬念不足**
-    - 当前：第5章结尾平淡，缺少钩子
-    - 建议：在结尾增加一个意外事件或信息，引发读者期待
-    - 预期效果：提升读者留存率
+-   Target common modifiers: [List]
+-   Actual common modifiers: [List]
+-   Match rate: [X]%
 
-2. **配角B功能未体现**
-    - 当前：配角B出场但作用不明
-    - 建议：在第8-9章安排配角B的关键作用，呼应前文铺垫
-    - 预期效果：增强配角存在感，丰富故事层次
+**Forbidden Word Check (AI-like phrasing)**:
 
-### 长期改进（P2）
+-   ❌ Found "pervaded with" used [X] times (forbidden in style-reference).
+-   ❌ Found "on the verge of collapse" used [X] times (forbidden in style-reference).
+-   Recommendation: Replace with common vocabulary from the reference work.
 
-1. **世界观设定提前揭示**
-    - 理由：可能影响后期神秘感营造
-    - 方案：评估是否需要调整后续揭示节奏，或增加更深层设定
-    - 时机：第10章之前决策
+### Sentence Structure Consistency Check
 
-**优先级排序**：P0-1（时间线）→ P0-2（能力矛盾）→ P1-1（悬念）→ P1-2（配角）
-```
+-   Average sentence length: Actual [X] words vs. Target [Y] words.
+-   Paragraph density: Actual [X] words/paragraph vs. Target [Y] words/paragraph.
+-   Evaluation: ✅ Compliant / ⚠️ Significant deviation.
 
-### B8. 生成验证报告
+### Description Proportion Check
 
-创建 `stories/*/analysis-report.md`：
+| Type | Target Proportion | Actual Proportion | Deviation |
+| --- | --- | --- | --- |
+| Dialogue | 35% | 40% | +5% ⚠️ |
+| Action | 40% | 30% | -10% ❌ |
+| Description | 15% | 20% | +5% ⚠️ |
+| Psychology | 10% | 10% | 0% ✅ |
 
-```markdown
-# 作品分析报告
+**Recommendation**: Increase the proportion of action descriptions, reduce dialogue and description.
 
-## 摘要
+### Narrative Style Consistency
 
-- 分析日期：2025-10-01
-- 分析范围：第1-7章
-- 分析字数：45,230 字
-- 总体评分：7.5/10
-- 建议行动：继续创作，批量修订前7章
+-   Perspective: ✅ Third-person limited, consistent.
+-   Language: ✅ Colloquial style, meets the target.
+-   Pacing: ⚠️ First 3 chapters are "fast-paced," but chapters 4-7 are slower.
+-   Emotional Tone: ✅ Passionate tone is consistent throughout.
 
-## 核心指标
+### Inter-Chapter Style Comparison
 
-| 维度     | 得分   | 说明                              |
-| -------- | ------ | --------------------------------- |
-| 宪法合规 | 8/10   | 价值观正确，风格一致，有1处需注意 |
-| 规格符合 | 7/10   | P0需求覆盖67%，需补充反派戏份     |
-| 计划执行 | 8/10   | 整体符合，局部调整合理            |
-| 内容质量 | 7.5/10 | 有2处逻辑问题，1处人物矛盾需修复  |
-| 读者体验 | 8/10   | 节奏合理，亮点突出，可读性强      |
+| Chapter | Style Characteristics | Similarity to Reference Work |
+| --- | --- | --- |
+| Chapter 1 | Concise, powerful, verb-dense | 85% ✅ |
+| Chapter 2 | Slightly wordy, too many modifiers | 60% ⚠️ |
+| Chapter 3 | Returns to a concise style | 80% ✅ |
 
-**平均分：7.7/10**
-
-## 关键发现
-
-1. ✅ 开篇吸引力强，第1章钩子设计优秀
-2. ✅ 父子关系演变符合预期，情感层次丰富
-3. ⚠️ 存在2处逻辑矛盾，需要修复
-4. ⚠️ 第5章悬念不足，影响读者留存
-5. ❌ P0需求"反派立体"尚未实现
-
-## 下一步行动
-
-1. 🔴 **立即修复**：时间线矛盾、角色能力矛盾（预计2小时）
-2. 🟡 **近期优化**：第5章增加悬念、第8-9章安排配角B戏份（预计1天）
-3. 🟢 **继续创作**：按计划推进第8-10章，重点补充反派戏份
-4. 📅 **计划检查**：第10章完成后再次运行 `/analyze` 进行阶段性验证
+**Style Consistency Score: [X]/10**
+**Recommendation**: Revise Chapter 2, referencing the style of Chapters 1 and 3.
 ```
 
 ---
 
-## 分析维度框架
+### B6. Task Completion Audit
 
-### 七大分析维度
+Check the status of task execution:
 
-1. **合规性**：符合宪法和规格
-2. **一致性**：逻辑、人物、世界观
-3. **完整性**：需求覆盖、任务完成
-4. **质量性**：文字、结构、节奏
-5. **创新性**：亮点、特色、突破
-6. **可读性**：流畅、吸引、共鸣
-7. **可行性**：进度、资源、风险
+```markdown
+## Task Completion
 
-## 评分标准
+### Overall Progress
+
+- Total Tasks: 28
+- Completed: 12 (43%)
+- In Progress: 2 (7%)
+- Not Started: 14 (50%)
+
+### Key Milestones
+
+- [Milestone 1: First 5 chapters complete] → ✅ Achieved
+- [Milestone 2: Main plot progressed to 50%] → ⚠️ Delayed (planned for Chapter 10, actually at 30% in Chapter 7)
+- [Milestone 3: Volume 1 finished] → TBD
+
+### Blockers and Risks
+
+1.  The "climax scene" task for Chapter 5 was not executed as planned, affecting subsequent pacing.
+2.  The villain character has not yet appeared, which may impact mid-term conflict design.
+```
+
+### B7. Generate Improvement Suggestions
+
+Provide specific suggestions based on the analysis results:
+
+```markdown
+## Improvement Suggestions
+
+### Urgent Fixes (P0)
+
+1.  **Timeline Contradiction**
+    -   Impact: Undermines reader trust, affects logical rigor.
+    -   Recommendation: Unify the time references in Chapters 3 and 6 to "two years ago."
+    -   Location: Chapter 3, Section 2; Chapter 6, Section 4.
+
+2.  **Character Ability Contradiction**
+    -   Impact: Seriously affects character credibility.
+    -   Recommendation: Add a transitional plot point about "learning martial arts" between Chapters 4-5, or remove the martial arts description from Chapter 6.
+    -   Location: Chapter 2, Section 5; Chapter 6, Section 3.
+
+### Optimization Suggestions (P1)
+
+1.  **Insufficient Suspense in Chapter 5**
+    -   Current: The ending of Chapter 5 is flat and lacks a hook.
+    -   Recommendation: Add an unexpected event or piece of information at the end to create anticipation.
+    -   Expected Effect: Improve reader retention.
+
+2.  **Supporting Character B's Function Not Realized**
+    -   Current: Supporting Character B appears but their role is unclear.
+    -   Recommendation: Arrange a key role for Supporting Character B in Chapters 8-9 to follow up on earlier setup.
+    -   Expected Effect: Enhance the character's presence and enrich the story's layers.
+
+### Long-term Improvements (P2)
+
+1.  **Early Reveal of World-building**
+    -   Reason: May affect the sense of mystery later on.
+    -   Solution: Evaluate whether to adjust the subsequent reveal pace or add deeper settings.
+    -   Timing: Decide before Chapter 10.
+
+**Priority Order**: P0-1 (Timeline) → P0-2 (Ability Contradiction) → P1-1 (Suspense) → P1-2 (Supporting Character)
+```
+
+### B8. Generate Verification Report
+
+Create `stories/*/analysis-report.md`:
+
+```markdown
+# Work Analysis Report
+
+## Summary
+
+- Analysis Date: 2025-10-01
+- Scope of Analysis: Chapters 1-7
+- Analyzed Word Count: 45,230 words
+- Overall Score: 7.5/10
+- Recommended Action: Continue writing, revise chapters 1-7 in batches.
+
+## Core Metrics
+
+| Dimension | Score | Notes |
+| --- | --- | --- |
+| Constitution Compliance | 8/10 | Values are correct, style is consistent, 1 point needs attention |
+| Specification Compliance | 7/10 | P0 requirement coverage is 67%, villain scenes need to be added |
+| Plan Execution | 8/10 | Generally compliant, local adjustments are reasonable |
+| Content Quality | 7.5/10 | 2 logical issues, 1 character contradiction to be fixed |
+| Reader Experience | 8/10 | Pacing is reasonable, highlights are prominent, highly readable |
+
+**Average Score: 7.7/10**
+
+## Key Findings
+
+1.  ✅ Strong opening appeal, excellent hook design in Chapter 1.
+2.  ✅ Father-son relationship evolves as expected, with rich emotional layers.
+3.  ⚠️ 2 logical contradictions exist and need to be fixed.
+4.  ⚠️ Insufficient suspense in Chapter 5, affecting reader retention.
+5.  ❌ P0 requirement "three-dimensional villain" has not yet been realized.
+
+## Next Steps
+
+1.  🔴 **Immediate Fixes**: Timeline contradiction, character ability contradiction (Est. 2 hours).
+2.  🟡 **Near-term Optimizations**: Add suspense to Chapter 5, arrange scenes for Supporting Character B in Chapters 8-9 (Est. 1 day).
+3.  🟢 **Continue Writing**: Proceed with Chapters 8-10 as planned, focusing on adding villain scenes.
+4.  📅 **Plan Check**: Rerun `/analyze` after completing Chapter 10 for a phase-gate review.
+```
+
+---
+
+## Analysis Dimension Framework
+
+### Seven Major Analysis Dimensions
+
+1.  **Compliance**: Conforms to constitution and specifications.
+2.  **Consistency**: Logic, characters, world-building.
+3.  **Completeness**: Requirement coverage, task completion.
+4.  **Quality**: Writing, structure, pacing.
+5.  **Innovation**: Highlights, unique features, breakthroughs.
+6.  **Readability**: Fluency, appeal, resonance.
+7.  **Feasibility**: Progress, resources, risks.
+
+## Scoring Criteria
 
 ```text
-10分：完美，超出预期
-8-9分：优秀，小瑕疵
-6-7分：良好，需优化
-4-5分：及格，问题较多
-1-3分：差，需要重写
+10: Perfect, exceeds expectations
+8-9: Excellent, minor flaws
+6-7: Good, needs optimization
+4-5: Passable, many issues
+1-3: Poor, needs rewriting
 ```
 
-## 使用场景
+## Usage Scenarios
 
-### 场景1：准备开始写作
+### Scenario 1: Preparing to Start Writing
 
 ```bash
-用户：/tasks
-AI：已生成 28 个写作任务
+User: /tasks
+AI: 28 writing tasks have been generated.
 
-用户：/analyze
-AI：检测到无章节内容，执行框架一致性分析...
+User: /analyze
+AI: No chapter content detected, performing framework consistency analysis...
 
-【覆盖率分析】
-⚠️ 规格需求"反派设定"无对应任务
-❌ 计划第10-12章缺少任务分解
+[Coverage Analysis]
+⚠️ Specification requirement "villain setting" has no corresponding task.
+❌ Plan for Chapters 10-12 is missing task breakdown.
 
-【一致性检查】
-❌ 规格要求"快节奏"，但计划前5章节奏慢
+[Consistency Check]
+❌ Specification requires "fast pacing," but the plan for the first 5 chapters is slow.
 
-【准备评分】6/10
-建议：修复上述问题后再开始写作
+[Readiness Score] 6/10
+Recommendation: Fix the above issues before starting to write.
 ```
 
-### 场景2：完成部分章节
+### Scenario 2: Completed Some Chapters
 
 ```bash
-用户：/write（完成第1-7章）
+User: /write (completes Chapters 1-7)
 
-用户：/analyze
-AI：检测到已完成 7 章，执行内容质量分析...
+User: /analyze
+AI: 7 chapters detected as complete, performing content quality analysis...
 
-【宪法合规】8/10 ✅
-【规格符合】7/10 ⚠️ P0需求覆盖67%
-【内容质量】7.5/10 ⚠️ 有2处逻辑问题
+[Constitution Compliance] 8/10 ✅
+[Specification Compliance] 7/10 ⚠️ P0 requirement coverage is 67%
+[Content Quality] 7.5/10 ⚠️ 2 logical issues found
 
-【改进建议】
-P0：修复时间线矛盾、角色能力矛盾
-P1：第5章增加悬念
+[Improvement Suggestions]
+P0: Fix timeline and character ability contradictions.
+P1: Add suspense to Chapter 5.
 
-【建议】：修复P0问题后，继续创作第8-10章
+[Recommendation]: After fixing P0 issues, continue writing Chapters 8-10.
 ```
 
-### 场景3：手动指定模式
+### Scenario 3: Manually Specifying Mode
 
 ```bash
-用户：/analyze --type=framework
-AI：强制执行框架分析模式...
+User: /analyze --type=framework
+AI: Forcing framework analysis mode...
 
-（即使有章节内容，也执行框架分析）
+(Performs framework analysis even if there is chapter content)
 
-用户：/analyze --type=content
-AI：强制执行内容分析模式...
+User: /analyze --type=content
+AI: Forcing content analysis mode...
 
-（即使章节不足3章，也执行内容分析）
+(Performs content analysis even if there are fewer than 3 chapters)
 ```
 
-### 🆕 场景4：专项分析
+### 🆕 Scenario 4: Specialized Analysis
 
 ```bash
-# 开篇专项分析（检查前3章是否符合黄金开篇法则）
-用户：/analyze --focus=opening
-AI：执行开篇专项分析...
+# Specialized opening analysis (checks if the first 3 chapters follow the golden opening rules)
+User: /analyze --focus=opening
+AI: Performing specialized opening analysis...
 
-【黄金法则检查】（自动读取 golden-opening.md）
-❌ 法则1违反：第一章有200字静态环境描写
-⚠️ 法则5延迟：金手指在第4章才展现（建议第2-3章）
+[Golden Rule Check] (automatically reads golden-opening.md)
+❌ Rule 1 violated: 200 words of static environmental description in Chapter 1.
+⚠️ Rule 5 delayed: Golden finger is only revealed in Chapter 4 (recommended in Ch. 2-3).
 
-【开篇钩子评估】
-第一句钩子：中等强度
-第一章结尾钩子：强
+[Opening Hook Assessment]
+First sentence hook: Medium strength.
+Chapter 1 ending hook: Strong.
 
-【建议】：删除开篇环境描写，金手指提前到第3章
+[Recommendation]: Delete the opening environmental description, move the golden finger reveal to Chapter 3.
 
 ---
 
-# 节奏专项分析（检查爽点分布和冲突密度）
-用户：/analyze --focus=pacing
-AI：执行节奏专项分析...
+# Specialized pacing analysis (checks high point distribution and conflict density)
+User: /analyze --focus=pacing
+AI: Performing specialized pacing analysis...
 
-【节奏参数】（自动读取 rhythm-config.json）
-目标爽点间隔：5章
-实际平均间隔：7章 ⚠️ 偏长
+[Pacing Parameters] (automatically reads rhythm-config.json)
+Target high point interval: 5 chapters
+Actual average interval: 7 chapters ⚠️ Too long.
 
-【冲突分布】
-平均冲突密度：1.2次/章
-建议密度：2次/章 ❌ 不足
+[Conflict Distribution]
+Average conflict density: 1.2 per chapter
+Recommended density: 2 per chapter ❌ Insufficient.
 
-【建议】：在第5、10、15章增加爽点设计
-
----
-
-# 逻辑专项分析（深度查找逻辑漏洞）
-用户：/analyze --focus=logic
-AI：执行逻辑专项分析...
-
-【时间线矛盾】
-❌ 第5章"三年后" vs 第7章"两年后"
-
-【能力矛盾】
-❌ 第2章"不会武功" → 第6章"使用高级剑法"（跨度过大）
-
-【因果逻辑】
-❌ 第3章宝物丢失 → 第6章宝物出现（未交代如何找回）
-
-【建议】：修复上述3处逻辑矛盾
+[Recommendation]: Add high point designs in Chapters 5, 10, and 15.
 
 ---
 
-# 风格专项分析（对比 style-reference.md）
-用户：/analyze --focus=style
-AI：执行风格专项分析...
+# Specialized logic analysis (deep search for logical loopholes)
+User: /analyze --focus=logic
+AI: Performing specialized logic analysis...
 
-【词汇一致性】（自动读取 style-reference.md）
-❌ 发现禁用词"弥漫着"共12次
-⚠️ 实际平均句长35字 vs 目标25字（偏长）
+[Timeline Contradiction]
+❌ "Three years later" in Ch. 5 vs. "two years later" in Ch. 7.
 
-【描写比例】
-对话：40%（目标35%）+5% ⚠️
-动作：30%（目标40%）-10% ❌
+[Ability Contradiction]
+❌ "Doesn't know martial arts" in Ch. 2 → "Uses advanced swordsmanship" in Ch. 6 (leap is too large).
 
-【建议】：
-1. 替换禁用词为对标作品常用词
-2. 缩短句子，增加短句比例
-3. 增加动作描写，减少对话
+[Causal Logic]
+❌ Treasure is lost in Ch. 3 → Treasure appears in Ch. 6 (no explanation of how it was recovered).
+
+[Recommendation]: Fix the above 3 logical contradictions.
+
+---
+
+# Specialized style analysis (compares with style-reference.md)
+User: /analyze --focus=style
+AI: Performing specialized style analysis...
+
+[Vocabulary Consistency] (automatically reads style-reference.md)
+❌ Found forbidden word "pervaded with" 12 times.
+⚠️ Actual average sentence length is 35 words vs. target of 25 (too long).
+
+[Description Proportion]
+Dialogue: 40% (Target 35%) +5% ⚠️
+Action: 30% (Target 40%) -10% ❌
+
+[Recommendation]:
+1. Replace forbidden words with common words from the reference work.
+2. Shorten sentences, increase the proportion of short sentences.
+3. Increase action descriptions, reduce dialogue.
 ```
 
-## 与其他命令的关系
+## Relationship with Other Commands
 
 ```text
-/constitution → 定义创作原则
+/constitution → Defines writing principles
      ↓
-/specify → 定义故事规格
+/specify → Defines story specifications
      ↓
-/clarify → 澄清关键决策
+/clarify → Clarifies key decisions
      ↓
-/plan → 制定创作计划
+/plan → Creates a writing plan
      ↓
-/tasks → 分解执行任务
+/tasks → Breaks down execution tasks
      ↓
-/analyze (框架模式) → 验证准备就绪
+/analyze (Framework Mode) → Verifies readiness
      ↓
-/write → 执行章节写作
+/write → Executes chapter writing
      ↓
-/analyze (内容模式) → 验证质量一致
+/analyze (Content Mode) → Verifies quality and consistency
      ↓
-（循环：修订 → 继续写作 → 再次分析）
+(Loop: Revise → Continue Writing → Analyze Again)
 ```
 
-## 注意事项
+## Precautions
 
-### 智能但可控
+### Intelligent but Controllable
 
-- 自动模式覆盖 90% 的使用场景
-- 手动模式应对特殊需求
-- 用户无需记忆复杂规则
+-   Automatic mode covers 90% of use cases.
+-   Manual mode handles special requirements.
+-   Users do not need to memorize complex rules.
 
-### 🆕 专项分析的使用场景
+### 🆕 Usage Scenarios for Specialized Analysis
 
-**何时使用专项分析？**
+**When to use specialized analysis?**
 
-1. **--focus=opening**：完成前3章后立即使用
-    - 开篇是读者留存的关键
-    - 黄金开篇法则具有硬性要求
-    - 早期发现问题成本更低
+1.  **`--focus=opening`**: Immediately after completing the first 3 chapters.
+    -   The opening is key to reader retention.
+    -   Golden opening rules have strict requirements.
+    -   Finding problems early is less costly.
 
-2. **--focus=pacing**：每10-15章使用一次
-    - 检查节奏是否符合预期
-    - 评估爽点/冲突分布合理性
-    - 根据rhythm-config调整节奏
+2.  **`--focus=pacing`**: Once every 10-15 chapters.
+    -   Check if the pacing meets expectations.
+    -   Evaluate the reasonableness of high point/conflict distribution.
+    -   Adjust pacing based on `rhythm-config`.
 
-3. **--focus=character**：主要转折点后使用
-    - 主角经历重大事件后
-    - 配角出场或退场时
-    - 人物关系发生变化时
+3.  **`--focus=character`**: After major turning points.
+    -   After the protagonist experiences a significant event.
+    -   When supporting characters are introduced or exit.
+    -   When character relationships change.
 
-4. **--focus=foreshadow**：每卷完成后使用
-    - 检查伏笔是否遗漏
-    - 评估伏笔埋设质量
-    - 提前规划回收时机
+4.  **`--focus=foreshadow`**: After completing each volume.
+    -   Check for missed foreshadowing.
+    -   Evaluate the quality of foreshadowing planting.
+    -   Plan resolution timing in advance.
 
-5. **--focus=logic**：大纲调整后使用
-    - 修改重要设定后
-    - 调整时间线后
-    - 增删章节内容后
+5.  **`--focus=logic`**: After adjusting the outline.
+    -   After modifying important settings.
+    -   After adjusting the timeline.
+    -   After adding or deleting chapter content.
 
-6. **--focus=style**：批量修订前使用
-    - 对比style-reference检查一致性
-    - 发现AI腔和禁用词
-    - 确保风格符合对标作品
+6.  **`--focus=style`**: Before batch revisions.
+    -   Check consistency against `style-reference`.
+    -   Find AI-like phrasing and forbidden words.
+    -   Ensure the style matches the reference work.
 
-**专项分析与全面分析的关系**：
+**Relationship between Specialized and Comprehensive Analysis**:
 
-- **全面分析**（默认）：适合阶段性检查（每5-10章）
-- **专项分析**（--focus）：适合针对性优化（发现问题时）
+-   **Comprehensive Analysis** (default): Suitable for periodic checks (every 5-10 chapters).
+-   **Specialized Analysis** (`--focus`): Suitable for targeted optimization (when a problem is found).
 
-**建议工作流**：
+**Recommended Workflow**:
 
-1. 每完成5-10章 → `/analyze`（全面分析）
-2. 发现开篇问题 → `/analyze --focus=opening`
-3. 节奏感觉不对 → `/analyze --focus=pacing`
-4. 逻辑不确定 → `/analyze --focus=logic`
-5. 修订前检查 → `/analyze --focus=style`
+1.  After every 5-10 chapters → `/analyze` (comprehensive analysis).
+2.  Find an issue with the opening → `/analyze --focus=opening`.
+3.  Feel the pacing is off → `/analyze --focus=pacing`.
+4.  Unsure about logic → `/analyze --focus=logic`.
+5.  Check before revising → `/analyze --focus=style`.
 
-### 客观且建设
+### Objective and Constructive
 
-- 基于数据和标准分析
-- 避免主观臆断
-- 提供具体可执行建议
+-   Analysis is based on data and standards.
+-   Avoid subjective judgments.
+-   Provide specific, actionable suggestions.
 
-### 渐进式改进
+### Progressive Improvement
 
-- 分析是为了改进，不是批判
-- 记录每次分析结果
-- 追踪改进效果
+-   Analysis is for improvement, not criticism.
+-   Record the results of each analysis.
+-   Track the effectiveness of improvements.
 
-### 🆕 与其他功能的协同
+### 🆕 Synergy with Other Features
 
-**专项分析自动读取的文件**：
+**Files automatically read by specialized analysis**:
 
-- `spec/presets/golden-opening.md` → opening分析
-- `spec/presets/rhythm-config.json` → pacing分析
-- `memory/style-reference.md` → style分析
-- `stories/*/specification.md` → 所有分析的基准
+-   `spec/presets/golden-opening.md` → opening analysis
+-   `spec/presets/rhythm-config.json` → pacing analysis
+-   `memory/style-reference.md` → style analysis
+-   `stories/*/specification.md` → benchmark for all analyses
 
-**优势**：
+**Advantages**:
 
-- 无需手动指定参考文件
-- 自动应用对标作品标准
-- 保持分析标准一致性
+-   No need to manually specify reference files.
+-   Automatically applies standards from the reference work.
+-   Maintains consistency in analysis standards.
 
 ---
 
-**记住**：**一个命令，三种模式（框架/内容/专项），智能而精准。analyze 的目的是让作品更好，无论是在写作前、写作后，还是针对特定维度。**
+**Remember**: **One command, three modes (framework/content/specialized), intelligent and precise. The purpose of `analyze` is to make the work better, whether before writing, after writing, or focusing on a specific dimension.**

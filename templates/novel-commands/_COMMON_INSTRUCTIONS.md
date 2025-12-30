@@ -1,73 +1,73 @@
-# 通用指令说明
+# Common Command Instructions
 
-这个文件记录了所有命令模板共用的指令模式，用于替代原 novel-writer 的脚本功能。
+This file documents the common instruction patterns shared by all command templates, intended to replace the script functionalities of the original novel-writer.
 
-## 脚本功能映射
+## Script Function Mapping
 
-### 1. 查找故事目录
+### 1. Find Story Directory
 
-**原脚本功能**：
+**Original Script Function**:
 
 ```bash
-{SCRIPT} --json  # 返回故事路径
+{SCRIPT} --json  # Returns the story path
 ```
 
-**AI 工具替代**：
+**AI Tool Replacement**:
 
 ```markdown
-使用 `execute_command` 工具执行：
+Use the `execute_command` tool to execute:
 \`\`\`bash
 find stories -type d -maxdepth 1 | sort | tail -1
 \`\`\`
 
-或使用 `list_files` 工具列出 `stories/` 目录，选择最新的（按字母序最大的，如 003-xxx）
+Alternatively, use the `list_files` tool to list the `stories/` directory and select the latest one (the largest alphabetically, e.g., 003-xxx).
 ```
 
-### 2. 检查文件是否存在
+### 2. Check if a File Exists
 
-**原脚本功能**：
+**Original Script Function**:
 
 ```bash
-{SCRIPT} check  # 检查文件是否存在
+{SCRIPT} check  # Checks if a file exists
 ```
 
-**AI 工具替代**：
+**AI Tool Replacement**:
 
 ```markdown
-使用 `read_file` 工具尝试读取文件：
+Use the `read_file` tool to attempt reading the file:
 
-- 如果读取成功 → 文件存在，使用内容
-- 如果读取失败 → 文件不存在，准备创建
+- If read successfully → File exists, use the content.
+- If read fails → File does not exist, prepare to create it.
 ```
 
-### 3. 创建编号目录
+### 3. Create Numbered Directory
 
-**原脚本功能**：
+**Original Script Function**:
 
 ```bash
-create_numbered_dir stories story  # 返回 001, 002, 003...
+create_numbered_dir stories story  # Returns 001, 002, 003...
 ```
 
-**AI 工具替代**：
+**AI Tool Replacement**:
 
 ```markdown
-1. 使用 `list_files` 或 `execute_command` 列出现有故事：
+1. Use `list_files` or `execute_command` to list existing stories:
    \`\`\`bash
    ls -1 stories/ | grep -E '^[0-9]{3}-'
    \`\`\`
 
-2. 找到最大编号（如 002），下一个编号是 003
+2. Find the highest number (e.g., 002), the next number is 003.
 
-3. 创建新目录路径：`stories/003-[story-name]/`
+3. Create the new directory path: `stories/003-[story-name]/`
 ```
 
-### 4. 获取路径信息（JSON）
+### 4. Get Path Information (JSON)
 
-**原脚本功能**：
+**Original Script Function**:
 
 ```bash
 {SCRIPT} --json --paths-only
-# 返回：
+# Returns:
 # {
 #   "STORY_PATH": "stories/001-xxx",
 #   "STORY_NAME": "001-xxx",
@@ -75,189 +75,189 @@ create_numbered_dir stories story  # 返回 001, 002, 003...
 # }
 ```
 
-**AI 工具替代**：
+**AI Tool Replacement**:
 
 ```markdown
-**不需要脚本返回 JSON**，直接在执行过程中：
+**No need for a script to return JSON.** During execution, directly:
 
-1. 列出故事目录获取路径
-2. 从路径中提取故事名称
-3. 拼接需要的文件路径
+1. List the story directory to get the path.
+2. Extract the story name from the path.
+3. Concatenate the required file paths.
 
-示例：
+Example:
 
-- 执行 `find stories -type d -maxdepth 1`
-- 得到路径：`stories/001-my-story`
-- 故事名称：`001-my-story`
-- 规格路径：`stories/001-my-story/specification.md`
+- Execute `find stories -type d -maxdepth 1`
+- Get the path: `stories/001-my-story`
+- Story name: `001-my-story`
+- Specification path: `stories/001-my-story/specification.md`
 ```
 
-## 常用模式
+## Common Patterns
 
-### 模式 1：查找并读取规格文件
+### Pattern 1: Find and Read Specification File
 
 ```markdown
-## 步骤 1：查找规格文件
+## Step 1: Find the specification file
 
-使用 `execute_command` 工具查找：
+Use the `execute_command` tool to find:
 
 \`\`\`bash
 find stories -name "specification.md" -type f
 \`\`\`
 
-**处理结果**：
+**Handling the result**:
 
-- 如果找到多个：让用户选择
-- 如果找到一个：提取目录路径（如 `stories/001-my-story/`）
-- 如果没有找到：提示用户先运行 `/specify`
+- If multiple are found: Ask the user to choose.
+- If one is found: Extract the directory path (e.g., `stories/001-my-story/`).
+- If none are found: Prompt the user to run `/specify` first.
 
-**读取文件**：
+**Read the file**:
 
-使用 `read_file` 工具读取找到的规格文件。
+Use the `read_file` tool to read the found specification file.
 ```
 
-### 模式 2：创建新故事目录
+### Pattern 2: Create a New Story Directory
 
 ```markdown
-## 步骤 1：确定故事编号和名称
+## Step 1: Determine the story number and name
 
-1. **列出现有故事**：
+1. **List existing stories**:
 
-    使用 `execute_command` 工具：
+    Use the `execute_command` tool:
     \`\`\`bash
     ls -1 stories/ 2>/dev/null || echo "empty"
     \`\`\`
 
-2. **计算下一个编号**：
-    - 如果目录为空或输出 "empty"：使用 `001`
-    - 如果有现有目录（如 `001-xxx`, `002-yyy`）：
-        - 找到最大编号（如 002）
-        - 下一个编号是 003
+2. **Calculate the next number**:
+    - If the directory is empty or outputs "empty": Use `001`.
+    - If there are existing directories (e.g., `001-xxx`, `002-yyy`):
+        - Find the highest number (e.g., 002).
+        - The next number is 003.
 
-3. **询问故事名称**：
-    - 从用户输入中提取，或
-    - 询问用户："请输入故事名称"
+3. **Ask for the story name**:
+    - Extract from user input, or
+    - Ask the user: "Please enter the story name."
 
-4. **创建目录路径**：
+4. **Create the directory path**:
 
-    `stories/[编号]-[名称]/`（如 `stories/003-my-novel/`）
+    `stories/[number]-[name]/` (e.g., `stories/003-my-novel/`)
 ```
 
-### 模式 3：检查前置条件
+### Pattern 3: Check Prerequisites
 
 ```markdown
-## 步骤 1：检查前置文档
+## Step 1: Check for prerequisite documents
 
-**检查宪法文件**：
+**Check for the constitution file**:
 
-使用 `read_file` 工具读取 `memory/constitution.md`：
+Use the `read_file` tool to read `memory/constitution.md`:
 
-- ✅ 如果成功：文件存在，继续
-- ⚠️ 如果失败：提示用户"建议先运行 `/constitution` 创建宪法"，询问是否继续
+- ✅ If successful: The file exists, continue.
+- ⚠️ If it fails: Prompt the user, "It is recommended to run `/constitution` first to create a constitution," and ask whether to proceed.
 
-**检查规格文件**：
+**Check for the specification file**:
 
-使用 `execute_command` 查找规格：
+Use `execute_command` to find the specification:
 \`\`\`bash
 find stories -name "specification.md" -type f
 \`\`\`
 
-- ✅ 如果找到：读取内容
-- ❌ 如果未找到：提示"必须先运行 `/specify` 创建规格"，停止执行
+- ✅ If found: Read the content.
+- ❌ If not found: Prompt, "You must run `/specify` first to create a specification," and stop execution.
 ```
 
-## 工具使用指南
+## Tool Usage Guide
 
-### execute_command 工具
+### `execute_command` Tool
 
-**用途**：执行 bash 命令
+**Purpose**: Execute bash commands.
 
-**示例**：
+**Example**:
 
 ```markdown
-使用 `execute_command` 工具执行：
+Use the `execute_command` tool to execute:
 \`\`\`bash
 mkdir -p memory stories spec/tracking
 \`\`\`
 ```
 
-### read_file 工具
+### `read_file` Tool
 
-**用途**：读取文件内容，同时检测文件是否存在
+**Purpose**: Read file content and simultaneously check for file existence.
 
-**示例**：
+**Example**:
 
 ```markdown
-使用 `read_file` 工具读取 `memory/constitution.md`：
+Use the `read_file` tool to read `memory/constitution.md`:
 
-- 成功 → 文件存在，使用内容
-- 失败 → 文件不存在
+- Success → File exists, use content.
+- Failure → File does not exist.
 ```
 
-### write_to_file 工具
+### `write_to_file` Tool
 
-**用途**：创建或更新文件
+**Purpose**: Create or update a file.
 
-**示例**：
+**Example**:
 
 ```markdown
-使用 `write_to_file` 工具将内容保存到 `memory/constitution.md`
+Use the `write_to_file` tool to save content to `memory/constitution.md`.
 ```
 
-### list_files 工具
+### `list_files` Tool
 
-**用途**：列出目录内容
+**Purpose**: List the contents of a directory.
 
-**示例**：
+**Example**:
 
 ```markdown
-使用 `list_files` 工具列出 `stories/` 目录
+Use the `list_files` tool to list the `stories/` directory.
 ```
 
-## 完整示例：plan 命令的脚本替代
+## Complete Example: Script Replacement for the `plan` Command
 
-**原来的方式**（novel-writer）：
+**Original Way** (novel-writer):
 
 ```markdown
-### 1. 加载前置文档
+### 1. Load prerequisite documents
 
-运行 `{SCRIPT}` 检查并加载：
+Run `{SCRIPT}` to check and load:
 
-- 宪法文件
-- 规格文件
+- Constitution file
+- Specification file
 ```
 
-**新的方式**（我们的系统）：
+**New Way** (our system):
 
 ```markdown
-### 1. 加载前置文档
+### 1. Load prerequisite documents
 
-**步骤 1.1：查找故事目录**
+**Step 1.1: Find the story directory**
 
-使用 `execute_command` 工具：
+Use the `execute_command` tool:
 \`\`\`bash
 find stories -type d -maxdepth 1 | sort | tail -1
 \`\`\`
 
-从输出中提取故事路径（如 `stories/001-my-story`）
+Extract the story path from the output (e.g., `stories/001-my-story`).
 
-**步骤 1.2：读取宪法文件**
+**Step 1.2: Read the constitution file**
 
-使用 `read_file` 工具读取 `memory/constitution.md`：
+Use the `read_file` tool to read `memory/constitution.md`:
 
-- 如果成功：记录宪法原则
-- 如果失败：警告用户但继续执行
+- If successful: Record the constitution principles.
+- If it fails: Warn the user but continue execution.
 
-**步骤 1.3：读取规格文件**
+**Step 1.3: Read the specification file**
 
-使用 `read_file` 工具读取 `[故事路径]/specification.md`：
+Use the `read_file` tool to read `[story_path]/specification.md`:
 
-- 如果成功：读取规格内容
-- 如果失败：错误提示"必须先运行 `/specify`"，停止执行
+- If successful: Read the specification content.
+- If it fails: Display an error "You must run `/specify` first" and stop execution.
 
-**步骤 1.4：读取澄清记录**
+**Step 1.4: Read the clarification records**
 
-检查规格文件中是否有"澄清记录"章节，如果有则参考
+Check if there is a "Clarification Records" section in the specification file and refer to it if it exists.
 ```
 
-这样 AI 就能通过现有工具完成原来脚本的所有功能！
+This way, the AI can accomplish all the functions of the original script using the existing tools!
